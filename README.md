@@ -98,7 +98,58 @@ Import the package:
 
 ### Usage
 
+**Logging** events:
+
 ```cs
+MParticle.Instance.LogEvent ("Test event", MParticle.EventType.Other, new Dictionary<string, string>{{ "Test key 1", "Test value 1" }});
+```
+
+**Logging** commerce events:
+
+```cs
+```
+
+```cs
+```
+
+```cs
+```
+
+**Logging** screen events:
+
+```cs
+MParticle.Instance.LogScreenEvent("Test screen", new Dictionary<string, string>{{ "Test key 1", "Test value 1" }});
+```
+
+## User Attributes
+
+**Setting** user attributes and tags:
+
+```cs
+MParticle.Instance.SetUserAttribute ("Test key", "Test value");
+```
+
+```cs
+MParticle.Instance.SetUserAttribute(MParticle.UserAttributeType.FirstName, "Test first name");
+```
+
+```cs
+```
+
+```cs
+MParticle.Instance.SetUserTag("Test key");
+```
+
+```cs
+MParticle.Instance.RemoveUserAttribute("Test key");
+```
+
+## User Identities
+
+**Setting** user identities:
+
+```cs
+MParticle.Instance.setUserIdentity("example@example.com", MParticle.UserIdentityType.Email);
 ```
 
 ### License

@@ -29,6 +29,10 @@ extern "C" {
         
         return dictionary;
     }
+
+    NSArray *arrayWithJSON(const char *json) {
+        return (NSArray *)dictionaryWithJSON(json);
+    }
     
     NSString *stringWithCString(const char *cString) {
         if (cString == NULL) {
@@ -45,8 +49,6 @@ extern "C" {
 
     void _Initialize (const char *key, const char *secret) {
         [[MParticle sharedInstance] startWithKey:stringWithCString(key) secret:stringWithCString(secret)];
-        //TODO(pjenkins): Remove
-        [MParticle sharedInstance].logLevel = MPILogLevelVerbose;
     }
 
     void _SetOptOut(Boolean optOut) {
@@ -62,11 +64,10 @@ extern "C" {
     }
 
     void _LogCommerceEvent(const char *commerceEventJSON) {
-        // //TODO: ...commerceEventJSON
-        // MPCommerceEvent *commerceEvent = nil; [[MPEvent alloc] initWithName:stringWithCString(eventName) type:eventType];
-        // event.info = dictionaryWithJSON(eventInfoJSON);
+        NSDictionary *json = dictionaryWithJSON(commerceEventJSON);
 
-        // [[MParticle sharedInstance] logCommerceEvent:event];
+        MPCommerceEvent *commerceEvent = [MPUnityConvert MPCommerceEvent:json];
+        [[MParticle sharedInstance] logCommerceEvent:commerceEvent];
     }
     
     void _LogScreen(const char *screenName, const char *eventInfoJSON) {
@@ -84,13 +85,12 @@ extern "C" {
                                                value:valueString];
     }
 
-    //TODO: Method signature.
-    void _SetUserAttributeArray(const char *key, const char *value) {
+    void _SetUserAttributeArray(const char *key, const char *valuesJson) {
         NSString *keyString = stringWithCString(key);
-        NSString *valueString = stringWithCString(value);
+        NSArray *values = arrayWithJSON(valuesJson);
         
         [[MParticle sharedInstance] setUserAttribute:keyString
-                                               value:valueString];
+                                               values:values];
     }
     
     void _SetUserIdentity(const char *identity, unsigned int identityType) {
@@ -144,3 +144,14 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+@interface MPUnityConvert : NSObject
+@end
+
+@implementation MPUnityConvert
+
++ (MPCommerceEvent *)MPCommerceEvent:(NSDictionary *json) {
+    return nil;
+}
+
+@end

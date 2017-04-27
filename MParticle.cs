@@ -3,212 +3,126 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-[Serializable]
-public class MPCommerceEvent
-{
-    public TransactionAttributes transactionAttributes;
-    public MParticle.ProductAction productAction;
-    public MParticle.PromotionAction promotionAction;
-    public Product[] products;
-    public Promotion[] promotions;
-    public Impression[] impressions;
-    public string screenName;
-    public string currency;
-    public Dictionary<string, string> customAttributes;
-    public string checkoutOptions;
-    public string productActionListName;
-    public string productActionListSource;
-    public int checkoutStep;
-    public bool nonInteractive;
-
-    public MPCommerceEvent (MParticle.ProductAction newProductAction, Product[] newProducts, TransactionAttributes newTransactionAttributes)
-    {
-        this.productAction = newProductAction;
-        this.products = newProducts;
-        this.transactionAttributes = newTransactionAttributes;
-    }
-
-    public MPCommerceEvent (MParticle.PromotionAction newPromotionAction, Promotion[] newPromotions)
-    {
-        this.promotionAction = newPromotionAction;
-        this.promotions = newPromotions;
-    }
-
-    public MPCommerceEvent (Impression[] newImpressions)
-    {
-        this.impressions = newImpressions;
-    }
-}
-
-[Serializable]
-public class Product
+namespace mParticle
 {
 
-    public string name;
-    public string sku;
-    public Double price;
-    public Double quantity;
-    public string brand;
-    public string couponCode;
-    public Double position;
-    public string category;
-    public string variant;
-    public Dictionary<string, string> customAttributes;
-
-    public Product (string newName, string newSku, Double newPrice, Double newQuantity)
+    [Serializable]
+    public sealed class CommerceEvent
     {
-        this.name = newName;
-        this.sku = newSku;
-        this.price = newPrice;
-        this.quantity = newQuantity;
+        public TransactionAttributes TransactionAttributes;
+        public ProductAction ProductAction;
+        public PromotionAction PromotionAction;
+        public Product[] Products;
+        public Promotion[] Promotions;
+        public Impression[] Impressions;
+        public string ScreenName;
+        public string Currency;
+        public Dictionary<string, string> CustomAttributes;
+        public string CheckoutOptions;
+        public string ProductActionListName;
+        public string ProductActionListSource;
+        public int? CheckoutStep;
+        public bool? NonInteractive;
+
+        public CommerceEvent(ProductAction productAction, Product[] products, TransactionAttributes transactionAttributes)
+        {
+            this.ProductAction = productAction;
+            this.Products = products;
+            this.TransactionAttributes = transactionAttributes;
+        }
+
+        public CommerceEvent(PromotionAction newPromotionAction, Promotion[] newPromotions)
+        {
+            this.PromotionAction = newPromotionAction;
+            this.Promotions = newPromotions;
+        }
+
+        public CommerceEvent(Impression[] impressions)
+        {
+            this.Impressions = impressions;
+        }
     }
 
-    public Product SetBrand (string newBrand)
+    [Serializable]
+    public sealed class Product
     {
-        this.brand = newBrand;
-        return this;
+
+        public string Name;
+        public string Sku;
+        public double Price;
+        public double Quantity;
+        public string Brand;
+        public string CouponCode;
+        public int? Position;
+        public string Category;
+        public string Variant;
+        public Dictionary<string, string> customAttributes;
+
+        private Product()
+        {
+        }
+
+        public Product(string name, string sku, double price, double quantity)
+        {
+            this.Name = name;
+            this.Sku = sku;
+            this.Price = price;
+            this.Quantity = quantity;
+        }
     }
 
-    public Product SetCouponCode (string newCouponCode)
+    [Serializable]
+    public sealed class TransactionAttributes
     {
-        this.couponCode = newCouponCode;
-        return this;
+        public string TransactionId;
+        public string Affiliation;
+        public double? Revenue = null;
+        public double? Shipping = null;
+        public double? Tax = null;
+        public string CouponCode;
+
+        private TransactionAttributes(){}
+
+        public TransactionAttributes(string transactionId)
+        {
+            this.TransactionId = transactionId;
+        }
     }
 
-    public Product SetPosition (Double newPosition)
+    [Serializable]
+    public sealed class Impression
     {
-        this.position = newPosition;
-        return this;
+        public string ImpressionListName;
+        public Product[] Products;
+
+        private Impression(){}
+
+        public Impression(string impressionListName, Product[] products)
+        {
+            this.ImpressionListName = impressionListName;
+            this.Products = products;
+        }
     }
 
-    public Product SetCategory (string newCategory)
+    [Serializable]
+    public sealed class Promotion
     {
-        this.category = newCategory;
-        return this;
+        public string Id;
+        public string Name;
+        public string Creative;
+        public int? Position;
+
+        private Promotion(){}
+
+        public Promotion(string id, string name, string creative, int? position)
+        {
+            this.Id = id;
+            this.Name = name;
+            this.Creative = creative;
+            this.Position = position;
+        }
     }
 
-    public Product SetVariant (string newVariant)
-    {
-        this.variant = newVariant;
-        return this;
-    }
-
-    public Product SetCustomAttributes (Dictionary<string, string> newCustomAttributes)
-    {
-        this.customAttributes = newCustomAttributes;
-        return this;
-    }
-}
-
-[Serializable]
-public class TransactionAttributes
-{
-    public string transactionId;
-    public string affiliation;
-    public Double revenue;
-    public Double shipping;
-    public Double tax;
-    public string couponCode;
-
-    public TransactionAttributes (string newTransactionId)
-    {
-        this.transactionId = newTransactionId;
-    }
-
-    public TransactionAttributes SetAffiliation (string newAffiliation)
-    {
-        this.affiliation = newAffiliation;
-        return this;
-    }
-
-    public TransactionAttributes SetRevenue (Double newRevenue)
-    {
-        this.revenue = newRevenue;
-        return this;
-    }
-
-    public TransactionAttributes SetShipping (Double newShipping)
-    {
-        this.shipping = newShipping;
-        return this;
-    }
-
-    public TransactionAttributes SetTax (Double newTax)
-    {
-        this.tax = newTax;
-        return this;
-    }
-
-    public TransactionAttributes SetCouponCode (string newCouponCode)
-    {
-        this.couponCode = newCouponCode;
-        return this;
-    }
-}
-
-[Serializable]
-public class Impression
-{
-    public string impressionListName;
-    public Product[] products;
-
-    public Impression (string newImpressionListName, Product[] newProducts)
-    {
-        this.impressionListName = newImpressionListName;
-        this.products = newProducts;
-    }
-}
-
-[Serializable]
-public class Promotion
-{
-    public string id;
-    public string name;
-    public string creative;
-    public int position;
-
-    public Promotion (string newId, string newName, string newCreative, int newPosition)
-    {
-        this.id = newId;
-        this.name = newName;
-        this.creative = newCreative;
-        this.position = newPosition;
-    }
-}
-
-public interface IMParticleSDK
-{
-    void Initialize(string key, string secret);
-
-    void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo);
-
-    void LogCommerceEvent (MPCommerceEvent commerceEvent);
-
-    void LogScreen (string screenName, Dictionary<string, string> eventInfo);
-
-    void SetUserAttribute (string key, string val);
-
-    void SetUserAttributeArray (string key, string[] values);
-
-    void SetUserIdentity (string identity, MParticle.UserIdentity identityType);
-
-    void SetUserTag (string tag);
-
-    void RemoveUserAttribute (string key);
-
-    long IncrementUserAttribute (string key, long incrementValue);
-
-    void LeaveBreadcrumb (string breadcrumbName, Dictionary<string, string> eventInfo);
-
-    void SetOptOut (bool optOut);
-
-    void Logout ();
-
-    MParticle.MPEnvironment GetEnvironment ();
-}
-
-public class MParticle : MonoBehaviour, IMParticleSDK
-{
     public enum EventType
     {
         Navigation = 1,
@@ -218,9 +132,8 @@ public class MParticle : MonoBehaviour, IMParticleSDK
         UserContent,
         UserPreference,
         Social,
-        Other}
-
-    ;
+        Other
+    };
 
     public enum UserIdentity
     {
@@ -233,17 +146,15 @@ public class MParticle : MonoBehaviour, IMParticleSDK
         Yahoo,
         Email,
         Alias,
-        FacebookCustomAudienceId}
+        FacebookCustomAudienceId
+    };
 
-    ;
-
-    public enum MPEnvironment
+    public enum Environment
     {
         AutoDetect = 0,
         Development,
-        Production}
-
-    ;
+        Production
+    };
 
     public enum ProductAction
     {
@@ -256,199 +167,235 @@ public class MParticle : MonoBehaviour, IMParticleSDK
         Purchase,
         Refund,
         AddToWishlist,
-        RemoveFromWishlist}
-
-    ;
+        RemoveFromWishlist
+    };
 
     public enum PromotionAction
     {
         View = 0,
-        Click}
-
-    ;
+        Click
+    };
 
     public static class UserAttribute
     {
         public const string
-            FirstName = "$FirstName",
-            LastName = "$LastName",
-            Address = "$Address",
-            State = "$State",
-            City = "$City",
-            Zipcode = "$Zipcode",
-            Country = "$Country",
-            Age = "$Age",
-            Gender = "$Gender",
-            MobileNumber = "$MobileNumber";
+        FirstName = "$FirstName",
+        LastName = "$LastName",
+        Address = "$Address",
+        State = "$State",
+        City = "$City",
+        Zipcode = "$Zipcode",
+        Country = "$Country",
+        Age = "$Age",
+        Gender = "$Gender",
+        MobileNumber = "$MobileNumber";
     };
 
-    private static MParticle instance;
+    public interface IMParticleSDK
+    {
+        void LogEvent(string eventName, EventType eventType, Dictionary<string, string> eventInfo);
 
-    public static MParticle Instance {
-        get { return instance ?? (instance = new GameObject ("MParticle").AddComponent<MParticle> ()); }
+        void LogCommerceEvent(CommerceEvent commerceEvent);
+
+        void LogScreen(string screenName, Dictionary<string, string> eventInfo);
+
+        void SetUserAttribute(string key, string val);
+
+        void SetUserAttributeArray(string key, string[] values);
+
+        void SetUserIdentity(string identity, UserIdentity identityType);
+
+        void SetUserTag(string tag);
+
+        void RemoveUserAttribute(string key);
+
+        long IncrementUserAttribute(string key, int incrementValue);
+
+        void LeaveBreadcrumb(string breadcrumbName, Dictionary<string, string> eventInfo);
+
+        void SetOptOut(bool optOut);
+
+        void Logout();
+
+        Environment GetEnvironment();
+
+        void Initialize(string apiKey, string apiSecret);
     }
 
-    private IMParticleSDK mp;
+    public sealed class MParticle : MonoBehaviour, IMParticleSDK
+    {
 
-    private IMParticleSDK mParticleInstance {
-        get {
-            if (mp == null) {
-#if UNITY_ANDROID
-mp = new MParticleAndroid ();
-#elif UNITY_IPHONE
-mp = new MParticleiOS ();
-#endif
-            }
-            return mp;
+
+        private static MParticle instance;
+
+        public static MParticle Instance
+        {
+            get { return instance ?? (instance = new GameObject("MParticle").AddComponent<MParticle>()); }
         }
-    }
 
-    void Awake ()
-    {
+        private IMParticleSDK mp;
 
-    }
+        private IMParticleSDK mParticleInstance
+        {
+            get
+            {
+                if (mp == null)
+                {
+                #if UNITY_ANDROID
+                    mp = new MParticleAndroid ();
+                #elif UNITY_IPHONE
+                    mp = new MParticleiOS ();
+                #endif
+                }
+                return mp;
+            }
+        }
 
-    /// <summary>
-    /// Starts the mParticle SDK.
-    /// </summary>
-    /// <param name="key">App Key</param>
-    /// <param name="secret">App Secret</param>
-    public void Initialize(string key, string secret)
-    {
-        mParticleInstance.Initialize (key, secret);
-    }
+        void Awake()
+        {
 
-    /// <summary>
-    /// Logs an event. The eventInfo is limited to 100 key value pairs.
-    /// The eventName and strings in eventInfo cannot contain more than 255 characters.
-    /// </summary>
-    /// <param name="eventName">The name of the event to be tracked (required not null)</param>
-    /// <param name="eventType">An enum value that indicates the type of event that is to be tracked.</param>
-    /// <param name="eventInfo">A dictionary containing further information about the event.</param>
-    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo)
-    {
-        mParticleInstance.LogEvent (eventName, eventType, eventInfo);
-    }
+        }
 
-    /// <summary>
-    /// Logs a product action, promotion or impression event.
-    /// </summary>
-    /// <param name="commerceEvent">The commerce event (required not null)</param>
-    public void LogCommerceEvent (MPCommerceEvent commerceEvent)
-    {
-        mParticleInstance.LogCommerceEvent (commerceEvent);
-    }
+        /// <summary>
+        /// Starts the mParticle SDK
+        /// </summary
+        public void Initialize(string apiKey, string apiSecret)
+        {
+            mParticleInstance.Initialize(apiKey, apiSecret);
+        }
+        /// <summary>
+        /// Logs an event. The eventInfo is limited to 100 key value pairs.
+        /// The eventName and strings in eventInfo cannot contain more than 255 characters.
+        /// </summary>
+        /// <param name="eventName">The name of the event to be tracked (required not null)</param>
+        /// <param name="eventType">An enum value that indicates the type of event that is to be tracked.</param>
+        /// <param name="eventInfo">A dictionary containing further information about the event.</param>
+        public void LogEvent(string eventName, EventType eventType, Dictionary<string, string> eventInfo)
+        {
+            mParticleInstance.LogEvent(eventName, eventType, eventInfo);
+        }
 
-    /// <summary>
-    /// Logs a screen.
-    /// </summary>
-    /// <param name="screenName">The name of the screen to be tracked (required not null)</param>
-    /// <param name="eventInfo">A dictionary containing further information about the screen.</param>
-    public void LogScreen (string screenName, Dictionary<string, string> eventInfo)
-    {
-        mParticleInstance.LogScreen (screenName, eventInfo);
-    }
+        /// <summary>
+        /// Logs a product action, promotion or impression event.
+        /// </summary>
+        /// <param name="commerceEvent">The commerce event (required not null)</param>
+        public void LogCommerceEvent(CommerceEvent commerceEvent)
+        {
+            mParticleInstance.LogCommerceEvent(commerceEvent);
+        }
 
-    /// <summary>
-    /// Sets a single user attribute. The property will be combined with any existing attributes.
-    /// There is a 100 count limit to user attributes.
-    /// </summary>
-    /// <param name="key">The attribute key.</param>
-    /// <param name="val">The attribute value.</param>
-    public void SetUserAttribute (string key, string val)
-    {
-        mParticleInstance.SetUserAttribute (key, val);
-    }
+        /// <summary>
+        /// Logs a screen.
+        /// </summary>
+        /// <param name="screenName">The name of the screen to be tracked (required not null)</param>
+        /// <param name="eventInfo">A dictionary containing further information about the screen.</param>
+        public void LogScreen(string screenName, Dictionary<string, string> eventInfo)
+        {
+            mParticleInstance.LogScreen(screenName, eventInfo);
+        }
 
-    /// <summary>
-    /// Sets a single user attribute. The property will be combined with any existing attributes.
-    /// There is a 100 count limit to user attributes.
-    /// </summary>
-    /// <param name="key">The attribute key.</param>
-    /// <param name="values">The attribute values.</param>
-    public void SetUserAttributeArray (string key, string[] values)
-    {
-        mParticleInstance.SetUserAttributeArray (key, values);
-    }
+        /// <summary>
+        /// Sets a single user attribute. The property will be combined with any existing attributes.
+        /// There is a 100 count limit to user attributes.
+        /// </summary>
+        /// <param name="key">The attribute key.</param>
+        /// <param name="val">The attribute value.</param>
+        public void SetUserAttribute(string key, string val)
+        {
+            mParticleInstance.SetUserAttribute(key, val);
+        }
 
-    /// <summary>
-    /// Sets User/Customer Identity.
-    /// </summary>
-    /// <param name="identity">A string representing the user identity.</param>
-    /// <param name="identityType">An enum with the user identity type.</param>
-    public void SetUserIdentity (string identity, MParticle.UserIdentity identityType)
-    {
-        mParticleInstance.SetUserIdentity (identity, identityType);
-    }
+        /// <summary>
+        /// Sets a single user attribute. The property will be combined with any existing attributes.
+        /// There is a 100 count limit to user attributes.
+        /// </summary>
+        /// <param name="key">The attribute key.</param>
+        /// <param name="values">The attribute values.</param>
+        public void SetUserAttributeArray(string key, string[] values)
+        {
+            mParticleInstance.SetUserAttributeArray(key, values);
+        }
 
-    /// <summary>
-    /// Sets a single user tag or attribute. The tag will be combined with any existing attributes.
-    /// There is a 100 count limit to user attributes.
-    /// </summary>
-    /// <param name="tag">The user tag/attribute.</param>
-    public void SetUserTag (string tag)
-    {
-        mParticleInstance.SetUserTag (tag);
-    }
+        /// <summary>
+        /// Sets User/Customer Identity.
+        /// </summary>
+        /// <param name="identity">A string representing the user identity.</param>
+        /// <param name="identityType">An enum with the user identity type.</param>
+        public void SetUserIdentity(string identity, UserIdentity identityType)
+        {
+            mParticleInstance.SetUserIdentity(identity, identityType);
+        }
 
-    /// <summary>
-    ///  Removes a single user attribute.
-    /// </summary>
-    /// <param name="tag">The user attribute key.</param>
-    public void RemoveUserAttribute (string key)
-    {
-        mParticleInstance.RemoveUserAttribute (key);
-    }
+        /// <summary>
+        /// Sets a single user tag or attribute. The tag will be combined with any existing attributes.
+        /// There is a 100 count limit to user attributes.
+        /// </summary>
+        /// <param name="tag">The user tag/attribute.</param>
+        public void SetUserTag(string tag)
+        {
+            mParticleInstance.SetUserTag(tag);
+        }
 
-    /// <summary>
-    /// Increments the value of a user attribute by the provided amount. If the key does not
-    /// exist among the current user attributes, this method will add the key to the user attributes
-    /// and set the value to the provided amount. If the key already exists and the existing value is not
-    /// a number, the operation will abort and the returned value will be zero.
-    /// </summary>
-    /// <param name="key">The attribute key.</param>
-    /// <param name="incrementValue">The increment amount.</param>
-    /// <returns>The new value amount or zero, in case of failure.</returns>
-    public long IncrementUserAttribute (string key, long incrementValue)
-    {
-        long newValue = mParticleInstance.IncrementUserAttribute (key, incrementValue);
-        return newValue;
-    }
+        /// <summary>
+        ///  Removes a single user attribute.
+        /// </summary>
+        /// <param name="tag">The user attribute key.</param>
+        public void RemoveUserAttribute(string key)
+        {
+            mParticleInstance.RemoveUserAttribute(key);
+        }
 
-    /// <summary>
-    /// Leaves a breadcrumb.
-    /// </summary>
-    /// <param name="breadcrumbName">The name of the breadcrumb (required not null)</param>
-    /// <param name="eventInfo">A dictionary containing further information about the breadcrumb.</param>
-    public void LeaveBreadcrumb (string breadcrumbName, Dictionary<string, string> eventInfo)
-    {
-        mParticleInstance.LeaveBreadcrumb (breadcrumbName, eventInfo);
-    }
+        /// <summary>
+        /// Increments the value of a user attribute by the provided amount. If the key does not
+        /// exist among the current user attributes, this method will add the key to the user attributes
+        /// and set the value to the provided amount. If the key already exists and the existing value is not
+        /// a number, the operation will abort and the returned value will be zero.
+        /// </summary>
+        /// <param name="key">The attribute key.</param>
+        /// <param name="incrementValue">The increment amount.</param>
+        /// <returns>The new value amount or zero, in case of failure.</returns>
+        public long IncrementUserAttribute(string key, int incrementValue)
+        {
+            long newValue = mParticleInstance.IncrementUserAttribute(key, incrementValue);
+            return newValue;
+        }
 
-    /// <summary>
-    /// Sets the opt-out status for the application. Set it to true to opt-out of event tracking. Default value is false.
-    /// </summary>
-    /// <param name="optOut">The opt-out status.</param>
-    public void SetOptOut (bool optOut)
-    {
-        mParticleInstance.SetOptOut (optOut);
-    }
+        /// <summary>
+        /// Leaves a breadcrumb.
+        /// </summary>
+        /// <param name="breadcrumbName">The name of the breadcrumb (required not null)</param>
+        /// <param name="eventInfo">A dictionary containing further information about the breadcrumb.</param>
+        public void LeaveBreadcrumb(string breadcrumbName, Dictionary<string, string> eventInfo)
+        {
+            mParticleInstance.LeaveBreadcrumb(breadcrumbName, eventInfo);
+        }
 
-    /// <summary>
-    /// Logs a user out.
-    /// </summary>
-    public void Logout ()
-    {
-        mParticleInstance.Logout ();
-    }
+        /// <summary>
+        /// Sets the opt-out status for the application. Set it to true to opt-out of event tracking. Default value is false.
+        /// </summary>
+        /// <param name="optOut">The opt-out status.</param>
+        public void SetOptOut(bool optOut)
+        {
+            mParticleInstance.SetOptOut(optOut);
+        }
 
-    /// <summary>
-    /// Gets the SDK running environment. The possible values are Development or Production.
-    /// </summary>
-    /// <returns>Whether the SDK is running in Development or Production mode.</returns>
-    public MParticle.MPEnvironment GetEnvironment ()
-    {
-        return mParticleInstance.GetEnvironment ();
+        /// <summary>
+        /// Logs a user out.
+        /// </summary>
+        public void Logout()
+        {
+            mParticleInstance.Logout();
+        }
+
+        /// <summary>
+        /// Gets the SDK running environment. The possible values are Development or Production.
+        /// </summary>
+        /// <returns>Whether the SDK is running in Development or Production mode.</returns>
+        public Environment GetEnvironment()
+        {
+            return mParticleInstance.GetEnvironment();
+        }
+
     }
 }
 #endif
