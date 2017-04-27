@@ -225,9 +225,9 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
 
 + (MPCommerceEvent *)MPCommerceEvent:(NSDictionary *)json {
 
-    BOOL isProductAction = json[@"ProductAction"] != nil;
-    BOOL isPromotion = json[@"PromotionAction"] != nil;
-    BOOL isImpression = json[@"Impressions"] != nil;
+    BOOL isProductAction = [json[@"ProductAction"] intValue] > 0 && [json[@"Products"] count] > 0;
+    BOOL isPromotion = [json[@"PromotionAction"] intValue] > 0 && [json[@"Promotions"] count] > 0;
+    BOOL isImpression = [json[@"Impressions"] count] > 0;
     BOOL isValid = isProductAction || isPromotion || isImpression;
 
     MPCommerceEvent *commerceEvent = nil;
