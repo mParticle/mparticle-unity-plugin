@@ -52,7 +52,10 @@ extern "C" {
     //
 
     void _Initialize (const char *key, const char *secret) {
-        [[MParticle sharedInstance] startWithKey:stringWithCString(key) secret:stringWithCString(secret)];
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            [[MParticle sharedInstance] startWithKey:stringWithCString(key) secret:stringWithCString(secret)];
+        });
     }
 
     void _SetOptOut(Boolean optOut) {
