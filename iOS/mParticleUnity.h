@@ -1,16 +1,11 @@
-//
-//  mParticleUnity.h
-//  mParticle
-//
-//  Copyright (c) 2014-2015 mParticle. All rights reserved.
-//
-
 #ifndef mParticle_mParticleUnity_h
 #define mParticle_mParticleUnity_h
 
 // Properties
 Boolean _ConsoleLogging();
 void _SetConsoleLogging(Boolean consoleLogging);
+
+int _GetEnvironment();
 
 Boolean _GetOptOut();
 void _SetOptOut(Boolean optOut);

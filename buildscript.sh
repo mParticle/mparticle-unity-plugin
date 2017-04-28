@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Copyright 2014-2015. mParticle, Inc.  All Rights Reserved.
-#
 # This script must be copied to and run from the Assets/Plugins of your Unity project.
 #
 # ./buildscript.sh
@@ -24,7 +22,7 @@ echo "Removing existing framework and jar"
 rm -rf "${plugins_dir}/iOS/mParticle.framework"
 rm -rf "${plugins_dir}"/Android/*jar
 
-echo "Copying the lastest files from the repository to the project directories"
+echo "Copying the latest files from the repository to the project directories"
 cp -pR "${unity_sdk_repository}/Android" "${plugins_dir}"
 cp -pR "${unity_sdk_repository}/iOS" "${plugins_dir}"
 cp -pR "${unity_sdk_repository}/MParticle.cs" "${plugins_dir}/"

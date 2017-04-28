@@ -185,7 +185,7 @@ public class MParticleiOS : IMParticleSDK {
             return MParticle.MPEnvironment.Development;
         }
 
-        return (MParticle.MPEnvironment) Enum.Parse(typeof(MParticle.MPEnvironment),_GetEnvironment ().ToString ());
+        return (MParticle.MPEnvironment) Enum.Parse(typeof(MParticle.MPEnvironment), _GetEnvironment ().ToString ());
     }
 
     public bool GetOptOut ()
@@ -451,21 +451,6 @@ public class MParticleiOS : IMParticleSDK {
         }
 
         _EndLocationTracking ();
-    }
-    
-    // Network Performance Measurement
-    public void ExcludeUrlFromNetworkPerformanceMeasurement (string url)
-    {
-    }
-
-    public void LogNetworkPerformance (string url, long startTime, string method, long length, long bytesSent, long bytesReceived)
-    {
-        if (Application.platform == RuntimePlatform.OSXEditor)
-        {
-            return;
-        }
-
-        _LogNetworkPerformance (url, startTime, method, length, bytesSent, bytesReceived);
     }
 
     // Push Notifications

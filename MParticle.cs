@@ -34,9 +34,6 @@ public interface IMParticleSDK
     // Location
     void BeginLocationTracking (MParticle.LocationRange locationRange, long minTime, double minDistance);
     void EndLocationTracking ();
-    // Network Performance Measurement
-    void ExcludeUrlFromNetworkPerformanceMeasurement (string url);
-    void LogNetworkPerformance (string url, long startTime, string method, long length, long bytesSent, long bytesReceived);
     // Push Notifications
     void DisablePushNotifications ();
     void EnablePushNotifications (string androidSenderId, uint iOSPushNotificationTypes);

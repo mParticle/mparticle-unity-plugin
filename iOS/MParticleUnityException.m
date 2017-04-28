@@ -1,11 +1,3 @@
-//
-//  MParticleUnityException.m
-//  mParticle
-//
-//  Created by Dalmo Cirne on 5/5/14.
-//  Copyright (c) 2014 mParticle. All rights reserved.
-//
-
 #import "MParticleUnityException.h"
 
 @interface MParticleUnityException() {

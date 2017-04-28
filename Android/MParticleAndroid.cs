@@ -16,11 +16,6 @@ public class MParticleAndroid : IMParticleSDK
 		mp = new AndroidJavaClass ("com.mparticle.MParticle").
 								CallStatic<AndroidJavaObject>("getInstance");
 	}
-	
-	public void BeginMeasuringNetworkPerformance()
-	{
-		mp.Call ("beginMeasuringNetworkPerformance");
-	}
 
 	public void BeginSession()
 	{
@@ -78,14 +73,6 @@ public class MParticleAndroid : IMParticleSDK
 	public void Upload()
 	{
 		mp.Call ("upload");
-	}
-
-	public void ExcludeUrlFromNetworkPerformanceMeasurement(string url)
-	{
-		mp.Call (
-			"excludeUrlFromNetworkPerformanceMeasurement", 
-			url
-		);
 	}
 
 	public void SetDebugMode(bool debugMode)

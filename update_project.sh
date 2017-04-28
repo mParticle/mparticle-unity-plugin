@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Copyright 2014-2015. mParticle, Inc.  All Rights Reserved.
-#
 # This script updates the source files in a Unity working project
 #
 # ./update_project.sh ~/Documents/Unity/Particles

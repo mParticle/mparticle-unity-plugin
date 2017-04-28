@@ -1,11 +1,3 @@
-//
-//  MParticleUnityException.h
-//  mParticle
-//
-//  Created by Dalmo Cirne on 5/5/14.
-//  Copyright (c) 2014 mParticle. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 
 @interface MParticleUnityException : NSException

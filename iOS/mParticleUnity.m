@@ -1,10 +1,3 @@
-//
-//  mParticleUnity.m
-//  mParticle
-//
-//  Copyright (c) 2014-2015 mParticle. All rights reserved.
-//
-
 #import "mParticleUnity.h"
 #import "MParticleUnityException.h"
 #import <mParticle/MPEnums.h>
@@ -57,6 +50,11 @@ extern "C" {
     Boolean _ConsoleLogging() {
         Boolean consoleLogging = [MParticle sharedInstance].consoleLogging;
         return consoleLogging;
+    }
+
+    int _GetEnvironment() {
+        int environment = [MParticle sharedInstance].environment;
+        return environment;
     }
 
     void _SetConsoleLogging(Boolean consoleLogging) {
@@ -176,7 +174,7 @@ extern "C" {
         MPProduct *product = [[MPProduct alloc] initWithName:stringWithCString(productName)
                                                     category:stringWithCString(category)
                                                     quantity:quantity
-                                               revenueAmount:totalAmount];
+                                                 totalAmount:totalAmount];
 
         product.affiliation = stringWithCString(affiliation);
         product.sku = stringWithCString(sku);
@@ -193,7 +191,7 @@ extern "C" {
         MPProduct *product = [[MPProduct alloc] initWithName:stringWithCString(productName)
                                                     category:stringWithCString(category)
                                                     quantity:quantity
-                                               revenueAmount:revenueAmount];
+                                                 totalAmount:revenueAmount];
 
         product.affiliation = stringWithCString(affiliation);
         product.sku = stringWithCString(sku);
