@@ -54,11 +54,11 @@ namespace mParticle
 		public void LogCommerceEvent (CommerceEvent commerceEvent)
 		{
 			AndroidJavaObject builder;
-			if (commerceEvent.ProductAction > 0 && commerceEvent.Products != null)
+			if (commerceEvent.ProductAction > 0 && commerceEvent.Products != null && commerceEvent.Products.Length > 0)
 			{
 				builder = new AndroidJavaObject("com.mparticle.commerce.CommerceEvent$Builder", ConvertToMpProductAction(commerceEvent.ProductAction), ConvertToMpProduct(commerceEvent.Products[0]));
 			}
-			else if (commerceEvent.PromotionAction > 0 && commerceEvent.Promotions != null)
+			else if (commerceEvent.Promotions != null && commerceEvent.Promotions.Length > 0)
 			{
 				builder = new AndroidJavaObject("com.mparticle.commerce.CommerceEvent$Builder", ConvertToMpPromotionAction(commerceEvent.PromotionAction), ConvertToMpPromotion(commerceEvent.Promotions[0]));
 			}

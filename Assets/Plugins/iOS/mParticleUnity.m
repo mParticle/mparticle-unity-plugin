@@ -226,7 +226,7 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
 + (MPCommerceEvent *)MPCommerceEvent:(NSDictionary *)json {
 
     BOOL isProductAction = [json[@"ProductAction"] intValue] > 0 && [json[@"Products"] count] > 0;
-    BOOL isPromotion = [json[@"PromotionAction"] intValue] > 0 && [json[@"Promotions"] count] > 0;
+    BOOL isPromotion =  [json[@"Promotions"] count] > 0;
     BOOL isImpression = [json[@"Impressions"] count] > 0;
     BOOL isValid = isProductAction || isPromotion || isImpression;
 
@@ -279,7 +279,7 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
 }
 
 + (MPPromotionContainer *)MPPromotionContainer:(id)json {
-    MPPromotionAction promotionAction = (MPPromotionAction)[json[@"PromotionAction"] intValue];
+    MPPromotionAction promotionAction = [json[@"PromotionAction"] intValue] == 0 ? MPPromotionActionView : MPPromotionActionClick;
     MPPromotionContainer *promotionContainer = [[MPPromotionContainer alloc] initWithAction:promotionAction promotion:nil];
     NSArray *jsonPromotions = json[@"Promotions"];
     [jsonPromotions enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
