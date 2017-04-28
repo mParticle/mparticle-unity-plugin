@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using mParticle;
 
 public class MParticleiOS : IMParticleSDK
 {
@@ -94,7 +95,7 @@ public class MParticleiOS : IMParticleSDK
         _Initialize (key, secret);
     }
 
-    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo)
+    public void LogEvent (string eventName, mParticle.EventType eventType, Dictionary<string, string> eventInfo)
     {
         if (Application.platform == RuntimePlatform.OSXEditor) {
             return;
@@ -105,7 +106,7 @@ public class MParticleiOS : IMParticleSDK
         _LogEvent (eventName, (int)eventType, eventInfoJSON);
     }
 
-    public void LogCommerceEvent (MPCommerceEvent commerceEvent)
+    public void LogCommerceEvent (CommerceEvent commerceEvent)
     {
         if (Application.platform == RuntimePlatform.OSXEditor) {
             return;
@@ -137,7 +138,7 @@ public class MParticleiOS : IMParticleSDK
         _LeaveBreadcrumb (breadcrumbName, eventInfoJSON);
     }
 
-    public long IncrementUserAttribute (string key, long incrementValue)
+    public long IncrementUserAttribute (string key, int incrementValue)
     {
         if (Application.platform == RuntimePlatform.OSXEditor) {
             return 0;
@@ -165,17 +166,17 @@ public class MParticleiOS : IMParticleSDK
         _SetUserAttribute (key, val);
     }
 
-    public void SetUserAttributeArray (string key, string[] values)
+    public void SetUserAttributeArray (string key, List<string> values)
     {
         if (Application.platform == RuntimePlatform.OSXEditor) {
             return;
         }
 
-        _SetUserAttributeArray (key, values);
+        _SetUserAttributeArray (key, values, values.Length());
     }
 
 
-    public void SetUserIdentity (string identity, MParticle.UserIdentity identityType)
+    public void SetUserIdentity (string identity, UserIdentity identityType)
     {
         if (Application.platform == RuntimePlatform.OSXEditor) {
             return;
@@ -202,13 +203,13 @@ public class MParticleiOS : IMParticleSDK
         _RemoveUserAttribute (key);
     }
 
-    public MParticle.MPEnvironment GetEnvironment ()
+    public mParticle.Environment GetEnvironment ()
     {
         if (Application.platform == RuntimePlatform.OSXEditor) {
-            return MParticle.MPEnvironment.Development;
+            return mParticle.Environment.Development;
         }
 
-        return (MParticle.MPEnvironment)Enum.Parse (typeof(MParticle.MPEnvironment), _GetEnvironment ().ToString ());
+        return (mParticle.Environment)Enum.Parse (typeof(mParticle.Environment), _GetEnvironment ().ToString ());
     }
 
     public void SetOptOut (bool optOut)

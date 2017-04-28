@@ -4,6 +4,10 @@
 #import "MPEvent.h"
 #import "MPProduct.h"
 
+@interface MPUnityConvert : NSObject
++ (MPCommerceEvent *)MPCommerceEvent:(NSDictionary *)json;
+@end
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -85,12 +89,16 @@ extern "C" {
                                                value:valueString];
     }
 
-    void _SetUserAttributeArray(const char *key, const char *valuesJson) {
-        NSString *keyString = stringWithCString(key);
-        NSArray *values = arrayWithJSON(valuesJson);
-        
-        [[MParticle sharedInstance] setUserAttribute:keyString
-                                               values:values];
+    void _SetUserAttributeArray(const char *key, const char *valuesJson[], int length) {
+       NSString *keyString = stringWithCString(key);
+       NSMutableArray *values = [NSMutableArray array];
+       for (int i = 0; i < length; i += 1) {
+           NSString *valueString = stringWithCString(valuesJson[i]);
+           [values addObject:valueString];
+       }
+       
+       [[MParticle sharedInstance] setUserAttribute:keyString
+                                             values:values];
     }
     
     void _SetUserIdentity(const char *identity, unsigned int identityType) {
@@ -112,7 +120,7 @@ extern "C" {
         [[MParticle sharedInstance] removeUserAttribute:keyString];
     }
 
-    long _IncrementUserAttribute(const char *key, long incrementValue) {
+    long _IncrementUserAttribute(const char *key, int incrementValue) {
         NSString *keyString = stringWithCString(key);
 
         NSNumber *newValue = [[MParticle sharedInstance] incrementUserAttribute:keyString byValue:@(incrementValue)];
@@ -145,13 +153,179 @@ extern "C" {
 }
 #endif
 
-@interface MPUnityConvert : NSObject
-@end
-
 @implementation MPUnityConvert
 
-+ (MPCommerceEvent *)MPCommerceEvent:(NSDictionary *json) {
-    return nil;
+typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
+    MPUnityCommerceEventActionAddToCart = 1,
+    MPUnityCommerceEventActionRemoveFromCart,
+    MPUnityCommerceEventActionCheckout,
+    MPUnityCommerceEventActionCheckoutOptions,
+    MPUnityCommerceEventActionClick,
+    MPUnityCommerceEventActionViewDetail,
+    MPUnityCommerceEventActionPurchase,
+    MPUnityCommerceEventActionRefund,
+    MPUnityCommerceEventActionAddToWishList,
+    MPUnityCommerceEventActionRemoveFromWishlist
+};
+
++ (MPCommerceEventAction)MPCommerceEventAction:(NSNumber *)json {
+    int actionInt = [json intValue];
+    MPCommerceEventAction action;
+    switch (actionInt) {
+        case MPUnityCommerceEventActionAddToCart:
+            action = MPCommerceEventActionAddToCart;
+            break;
+
+        case MPUnityCommerceEventActionRemoveFromCart:
+            action = MPCommerceEventActionRemoveFromCart;
+            break;
+
+        case MPUnityCommerceEventActionCheckout:
+            action = MPCommerceEventActionCheckout;
+            break;
+
+        case MPUnityCommerceEventActionCheckoutOptions:
+            action = MPCommerceEventActionCheckoutOptions;
+            break;
+
+        case MPUnityCommerceEventActionClick:
+            action = MPCommerceEventActionClick;
+            break;
+
+        case MPUnityCommerceEventActionViewDetail:
+            action = MPCommerceEventActionViewDetail;
+            break;
+
+        case MPUnityCommerceEventActionPurchase:
+            action = MPCommerceEventActionPurchase;
+            break;
+
+        case MPUnityCommerceEventActionRefund:
+            action = MPCommerceEventActionRefund;
+            break;
+
+        case MPUnityCommerceEventActionAddToWishList:
+            action = MPCommerceEventActionAddToWishList;
+            break;
+
+        case MPUnityCommerceEventActionRemoveFromWishlist:
+            action = MPCommerceEventActionRemoveFromWishlist;
+            break;
+            
+        default:
+            action = MPCommerceEventActionAddToCart;
+            NSAssert(NO, @"Invalid commerce event action");
+            break;
+    }
+    return action;
+}
+
++ (MPCommerceEvent *)MPCommerceEvent:(NSDictionary *)json {
+
+    BOOL isProductAction = json[@"ProductAction"] != nil;
+    BOOL isPromotion = json[@"PromotionAction"] != nil;
+    BOOL isImpression = json[@"Impressions"] != nil;
+    BOOL isValid = isProductAction || isPromotion || isImpression;
+
+    MPCommerceEvent *commerceEvent = nil;
+    if (!isValid) {
+        NSAssert(NO, @"Invalid commerce event");
+        return commerceEvent;
+    }
+
+    if (isProductAction) {
+        MPCommerceEventAction action = [MPUnityConvert MPCommerceEventAction:json[@"ProductAction"]];
+        commerceEvent = [[MPCommerceEvent alloc] initWithAction:action];
+    }
+    else if (isPromotion) {
+        MPPromotionContainer *promotionContainer = [MPUnityConvert MPPromotionContainer:json];
+        commerceEvent = [[MPCommerceEvent alloc] initWithPromotionContainer:promotionContainer];
+    }
+    else {
+        commerceEvent = [[MPCommerceEvent alloc] initWithImpressionName:nil product:nil];
+    }
+
+    commerceEvent.checkoutOptions = json[@"CheckoutOptions"];
+    commerceEvent.currency = json[@"Currency"];
+    commerceEvent.productListName = json[@"ProductActionListName"];
+    commerceEvent.productListSource = json[@"ProductActionListSource"];
+    commerceEvent.screenName = json[@"ScreenName"];
+    commerceEvent.transactionAttributes = [MPUnityConvert MPTransactionAttributes:json[@"transactionAttributes"]];
+    commerceEvent.checkoutStep = [json[@"CheckoutStep"] intValue];
+    commerceEvent.nonInteractive = [json[@"NonInteractive"] boolValue];
+
+    NSMutableArray *products = [NSMutableArray array];
+    NSArray *jsonProducts = json[@"Products"];
+    [jsonProducts enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        MPProduct *product = [MPUnityConvert MPProduct:obj];
+        [products addObject:product];
+    }];
+    [commerceEvent addProducts:products];
+
+    NSArray *jsonImpressions = json[@"Impressions"];
+    [jsonImpressions enumerateObjectsUsingBlock:^(NSDictionary *jsonImpression, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *listName = jsonImpression[@"ImpressionListName"];
+        NSArray *jsonProducts = jsonImpression[@"Products"];
+        [jsonProducts enumerateObjectsUsingBlock:^(id  _Nonnull jsonProduct, NSUInteger idx, BOOL * _Nonnull stop) {
+            MPProduct *product = [MPUnityConvert MPProduct:jsonProduct];
+            [commerceEvent addImpression:product listName:listName];
+        }];
+    }];
+    
+    return commerceEvent;
+}
+
++ (MPPromotionContainer *)MPPromotionContainer:(id)json {
+    MPPromotionAction promotionAction = (MPPromotionAction)[json[@"PromotionAction"] intValue];
+    MPPromotionContainer *promotionContainer = [[MPPromotionContainer alloc] initWithAction:promotionAction promotion:nil];
+    NSArray *jsonPromotions = json[@"Promotions"];
+    [jsonPromotions enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        MPPromotion *promotion = [MPUnityConvert MPPromotion:obj];
+        [promotionContainer addPromotion:promotion];
+    }];
+
+    return promotionContainer;
+}
+
++ (MPPromotion *)MPPromotion:(id)json {
+    MPPromotion *promotion = [[MPPromotion alloc] init];
+    promotion.creative = json[@"Creative"];
+    promotion.name = json[@"Name"];
+    promotion.position = json[@"Position"];
+    promotion.promotionId = json[@"Id"];
+    return promotion;
+}
+
++ (MPTransactionAttributes *)MPTransactionAttributes:(id)json {
+    MPTransactionAttributes *transactionAttributes;
+    transactionAttributes.affiliation = json[@"Affiliation"];
+    transactionAttributes.couponCode = json[@"CouponCode"];
+    transactionAttributes.shipping = json[@"Shipping"];
+    transactionAttributes.tax = json[@"Tax"];
+    transactionAttributes.revenue = json[@"Revenue"];
+    transactionAttributes.transactionId = json[@"TransactionId"];
+    return transactionAttributes;
+}
+
++ (MPProduct *)MPProduct:(id)json {
+    MPProduct *product = [[MPProduct alloc] init];
+    product.brand = json[@"Brand"];
+    product.category = json[@"Category"];
+    product.couponCode = json[@"CouponCode"];
+    product.name = json[@"Name"];
+    product.price = json[@"Price"];
+    product.sku = json[@"Sku"];
+    product.variant = json[@"Variant"];
+    product.position = [json[@"Position"] intValue];
+    product.quantity = json[@"Quantity"] ?: @1;
+
+    NSDictionary *jsonAttributes = json[@"CustomAttributes"];
+    for (NSString *key in jsonAttributes) {
+        NSString *value = jsonAttributes[key];
+        [product setObject:value forKeyedSubscript:key];
+    }
+
+    return product;
 }
 
 @end
