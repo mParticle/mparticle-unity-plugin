@@ -123,7 +123,7 @@ extern "C" {
         [[MParticle sharedInstance] removeUserAttribute:keyString];
     }
 
-    long _IncrementUserAttribute(const char *key, int incrementValue) {
+    int _IncrementUserAttribute(const char *key, int incrementValue) {
         NSString *keyString = stringWithCString(key);
 
         NSNumber *newValue = [[MParticle sharedInstance] incrementUserAttribute:keyString byValue:@(incrementValue)];
@@ -253,7 +253,7 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
     commerceEvent.productListName = json[@"ProductActionListName"];
     commerceEvent.productListSource = json[@"ProductActionListSource"];
     commerceEvent.screenName = json[@"ScreenName"];
-    commerceEvent.transactionAttributes = [MPUnityConvert MPTransactionAttributes:json[@"transactionAttributes"]];
+    commerceEvent.transactionAttributes = [MPUnityConvert MPTransactionAttributes:json[@"TransactionAttributes"]];
     commerceEvent.checkoutStep = [json[@"CheckoutStep"] intValue];
     commerceEvent.nonInteractive = [json[@"NonInteractive"] boolValue];
 

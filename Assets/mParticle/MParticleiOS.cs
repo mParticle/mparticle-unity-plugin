@@ -22,13 +22,13 @@ public class MParticleiOS : IMParticleSDK
     private static extern void _LogScreen (string screenName, string eventInfoJSON);
 
     [DllImport ("__Internal")]
-    private static extern long _IncrementUserAttribute (string key, int incrementValue);
+    private static extern int _IncrementUserAttribute (string key, int incrementValue);
 
     [DllImport ("__Internal")]
     private static extern void _SetUserAttribute (string key, string val);
 
     [DllImport ("__Internal")]
-    private static extern void _SetUserAttributeArray (string key, string[] values);
+    private static extern void _SetUserAttributeArray (string key, string[] values, int length);
 
     [DllImport ("__Internal")]
     private static extern void _SetUserIdentity (string identity, uint identityType);
@@ -138,13 +138,13 @@ public class MParticleiOS : IMParticleSDK
         _LeaveBreadcrumb (breadcrumbName, eventInfoJSON);
     }
 
-    public long IncrementUserAttribute (string key, int incrementValue)
+    public int IncrementUserAttribute (string key, int incrementValue)
     {
         if (Application.platform == RuntimePlatform.OSXEditor) {
             return 0;
         }
 
-        long newValue = _IncrementUserAttribute (key, incrementValue);
+        int newValue = _IncrementUserAttribute (key, incrementValue);
         return newValue;
     }
 

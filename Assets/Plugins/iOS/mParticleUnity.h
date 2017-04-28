@@ -10,7 +10,7 @@ void _LogScreen(const char *screenName, const char *eventInfoJSON);
 
 void _LeaveBreadcrumb(const char *breadcrumbName, const char *eventInfoJSON);
 
-long _IncrementUserAttribute(const char *key, int incrementValue);
+int _IncrementUserAttribute(const char *key, int incrementValue);
 void _Logout();
 void _SetUserAttribute(const char *key, const char *value);
 void _SetUserAttributeArray(const char *key, const char *values[], int length);

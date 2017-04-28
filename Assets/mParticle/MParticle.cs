@@ -209,7 +209,7 @@ namespace mParticle
 
         void RemoveUserAttribute(string key);
 
-        long IncrementUserAttribute(string key, int incrementValue);
+        int IncrementUserAttribute(string key, int incrementValue);
 
         void LeaveBreadcrumb(string breadcrumbName, Dictionary<string, string> eventInfo);
 
@@ -354,9 +354,9 @@ namespace mParticle
         /// <param name="key">The attribute key.</param>
         /// <param name="incrementValue">The increment amount.</param>
         /// <returns>The new value amount or zero, in case of failure.</returns>
-        public long IncrementUserAttribute(string key, int incrementValue)
+        public int IncrementUserAttribute(string key, int incrementValue)
         {
-            long newValue = mParticleInstance.IncrementUserAttribute(key, incrementValue);
+            int newValue = mParticleInstance.IncrementUserAttribute(key, incrementValue);
             return newValue;
         }
 

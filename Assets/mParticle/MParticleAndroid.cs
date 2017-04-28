@@ -149,7 +149,7 @@ namespace mParticle
 			);
 		}
 
-		public long IncrementUserAttribute (string key, int value)
+		public int IncrementUserAttribute (string key, int value)
 		{
 			mp.Call<bool> (
 				"incrementUserAttribute", 
