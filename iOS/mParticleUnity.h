@@ -2,7 +2,7 @@
 //  mParticleUnity.h
 //  mParticle
 //
-//  Copyright (c) 2014 mParticle. All rights reserved.
+//  Copyright (c) 2014-2015 mParticle. All rights reserved.
 //
 
 #ifndef mParticle_mParticleUnity_h
@@ -19,7 +19,7 @@ double _GetSessionTimeout();
 void _SetSessionTimeout(double sessionTimeout);
 
 // Basic Tracking
-void _LogEvent(const char *eventName, int eventType, const char *eventInfoJSON, double eventLength, const char *category);
+void _LogEvent(const char *eventName, int eventType, const char *eventInfoJSON, double startTime, double endTime, double duration, const char *category);
 
 void _LogScreen(const char *screenName, const char *eventInfoJSON);
 

@@ -6,14 +6,16 @@ using System;
 public interface IMParticleSDK
 {
     // Properties
+    bool GetConsoleLogging ();
+    void SetConsoleLogging (bool consoleLogging);
     MParticle.MPEnvironment GetEnvironment ();
-    void SetEnvironment (MParticle.MPEnvironment environment);
     bool GetOptOut ();
     void SetOptOut (bool optOut);
     double GetSessionTimeout ();
     void SetSessionTimeout (double sessionTimeout);
     // Basic Tracking
-    void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long eventLength, string category);
+    void LogEvent (MPEvent mpEvent);
+    void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long startTime, long endTime, long duration, string category);
     void LogScreen (string screenName, Dictionary<string, string> eventInfo);
     // Error, Exception, and Crash Handling
     void BeginUncaughtExceptionLogging ();
@@ -96,6 +98,41 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     //
     // Properties
     //
+
+    /// <summary>
+    /// Retrieves status of log output to the console. If true, it means logs will be output to the 
+    /// console, if set to false the development logs will be suppressed. This property works in conjunction with 
+    /// the environment property. If the environment is Production, consoleLogging will always be false, 
+    /// regardless of the value you assign to it.
+    /// </summary>
+    /// <returns>The status of the log output to the console.</returns>
+    public bool GetConsoleLogging ()
+    {
+        return mParticleInstance.GetConsoleLogging ();
+    }
+
+    /// <summary>
+    /// Sets the status of log output to the console. If true, it means logs will be output to the 
+    /// console, if set to false the development logs will be suppressed. This property works in conjunction with 
+    /// the environment property. If the environment is Production, consoleLogging will always be false, 
+    /// regardless of the value you assign to it.
+    /// </summary>
+    public void SetConsoleLogging (bool consoleLogging) 
+    {
+        mParticleInstance.SetConsoleLogging (consoleLogging);
+    }
+
+    /// <summary>
+    /// Enables or disables log outputs to the console. If set to true development logs will be output to the 
+    /// console, if set to false the development logs will be suppressed. This property works in conjunction with 
+    /// the environment property. If the environment is Production, consoleLogging will always be false, 
+    /// regardless of the value you assign to it.
+    /// </summary>
+    public bool ConsoleLogging
+    {
+        get { return mParticleInstance.GetConsoleLogging (); }
+        set { mParticleInstance.SetConsoleLogging (value); }
+    }
     
     /// <summary>
     /// Gets the SDK running environment. The possible values are Development or Production.
@@ -107,15 +144,6 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     }
 
     /// <summary>
-    /// Sets the SDK running environment. Possible values are: AutoDetect, Development, or Production.
-    /// </summary>
-    /// <param name="environment">The environment mode.</param>
-    public void SetEnvironment (MParticle.MPEnvironment environment)
-    {
-        mParticleInstance.SetEnvironment (environment);
-    }
-
-    /// <summary>
     /// Environment property for the mParticle SDK.
     /// The running environment determines key logging and debugging behaviors in the SDK.
     /// </summary>
@@ -123,7 +151,6 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     public MParticle.MPEnvironment Environment
     {
         get { return mParticleInstance.GetEnvironment (); }
-        set { mParticleInstance.SetEnvironment (value); }
     }
 
     /// <summary>
@@ -187,27 +214,14 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     //
 
     /// <summary>
-    /// Logs an event. The eventInfo is limited to 100 key value pairs. 
-    /// The eventName and strings in eventInfo cannot contain more than 255 characters.
+    /// Logs an event. This is one of the most fundamental method of the SDK. Developers define all the characteristics
+    /// of an event (name, type, attributes, etc) in an instance of MPEvent and pass that instance to this method to 
+    /// log its data to the mParticle SDK.
     /// </summary>
-    /// <param name="eventName">The name of the event to be tracked (required not null)</param>
-    /// <param name="eventType">An enum value that indicates the type of event that is to be tracked.</param>
-    public void LogEvent (string eventName, MParticle.EventType eventType)
+    /// <param name="mpEvent">An instance of MPEvent</param>
+    public void LogEvent (MPEvent mpEvent)
     {
-        mParticleInstance.LogEvent (eventName, eventType, null, 0, null);
-    }
-
-    /// <summary>
-    /// Logs an event. The eventInfo is limited to 100 key value pairs. 
-    /// The eventName and strings in eventInfo cannot contain more than 255 characters.
-    /// </summary>
-    /// <param name="eventName">The name of the event to be tracked (required not null)</param>
-    /// <param name="eventType">An enum value that indicates the type of event that is to be tracked.</param>
-    /// <param name="eventInfo">A dictionary containing further information about the event.</param>
-    /// <param name="eventLength">The duration of the event.</param>
-    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long eventLength)
-    {
-        mParticleInstance.LogEvent (eventName, eventType, eventInfo, eventLength, null);
+        mParticleInstance.LogEvent (mpEvent);
     }
 
     /// <summary>
@@ -219,18 +233,7 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     /// <param name="eventInfo">A dictionary containing further information about the event.</param>
     public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo)
     {
-        mParticleInstance.LogEvent (eventName, eventType, eventInfo, 0, null);
-    }
-
-    /// <summary>
-    /// Logs an event. The eventName and strings in eventInfo cannot contain more than 255 characters.
-    /// </summary>
-    /// <param name="eventName">The name of the event to be tracked (required not null)</param>
-    /// <param name="eventType">An enum value that indicates the type of event that is to be tracked.</param>
-    /// <param name="eventLength">The duration of the event.</param>
-    public void LogEvent (string eventName, MParticle.EventType eventType, long eventLength)
-    {
-        mParticleInstance.LogEvent (eventName, eventType, null, eventLength, null);
+        mParticleInstance.LogEvent (eventName, eventType, eventInfo, 0, 0, 0, null);
     }
 
     /// <summary>
@@ -240,11 +243,13 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     /// <param name="eventName">The name of the event to be tracked (required not null)</param>
     /// <param name="eventType">An enum value that indicates the type of event that is to be tracked.</param>
     /// <param name="eventInfo">A dictionary containing further information about the event.</param>
-    /// <param name="eventLength">The duration of the event.</param>
-    /// <param name="category">A string with the developer/company defined category of the event.</param>
-    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long eventLength, string category)
+    /// <param name="startTime">The time the event started, if not applicable, pass 0 (zero)</param>
+    /// <param name="endTime">The time the event ended, if not applicable, pass 0 (zero)</param>
+    /// <param name="duration">The duration of the event, if not applicable, pass 0 (zero)</param>
+    /// <param name="category">Category is a string with a developer/company defined category of the event. If not applicable, pass null.</param>
+    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long startTime, long endTime, long duration, string category)
     {
-        mParticleInstance.LogEvent (eventName, eventType, eventInfo, eventLength, category);
+        mParticleInstance.LogEvent (eventName, eventType, eventInfo, startTime, endTime, duration, category);
     }
 
     /// <summary>

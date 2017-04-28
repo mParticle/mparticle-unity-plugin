@@ -18,7 +18,7 @@ public class MParticleiOS : IMParticleSDK {
     private static extern void _SetConsoleLogging (int consoleLogging);
 
     [DllImport ("__Internal")]
-    private static extern int _GetEnvironment();
+    private static extern int _GetEnvironment ();
 
     [DllImport ("__Internal")]
     private static extern bool _GetOptOut ();
@@ -34,7 +34,7 @@ public class MParticleiOS : IMParticleSDK {
     
     // Basic Tracking
     [DllImport ("__Internal")]
-    private static extern void _LogEvent (string eventName, int eventType, string eventInfoJSON, double eventLength, string category);
+    private static extern void _LogEvent (string eventName, int eventType, string eventInfoJSON, double startTime, double endTime, double duration, string category);
 
     [DllImport ("__Internal")]
     private static extern void _LogScreen (string screenName, string eventInfoJSON);
@@ -104,8 +104,20 @@ public class MParticleiOS : IMParticleSDK {
     private static extern void _SetUserTag (string tag);
 
     /*
+     Private variables
+     */
+    private static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    /*
      Private methods
      */
+
+    public static double DateTimeToSeconds (DateTime sourceDateTime)
+    {
+        DateTime referenceDateTime = (sourceDateTime.Kind == DateTimeKind.Unspecified) ? DateTime.SpecifyKind(sourceDateTime, DateTimeKind.Utc) : sourceDateTime.ToUniversalTime();
+        return (double)((referenceDateTime - epoch).TotalSeconds);
+    }
+
     private static string SerializeDictionary (Dictionary<string, string> dictionary)
     {
         if (dictionary == null)
@@ -135,14 +147,16 @@ public class MParticleiOS : IMParticleSDK {
      */
     
     // Properties
-    public bool ConsoleLogging ()
+    public bool GetConsoleLogging ()
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
             return false;
         }
 
-        return _ConsoleLogging ();
+        bool consoleLoggingEnabled = _ConsoleLogging () != 0;
+
+        return consoleLoggingEnabled;
     }
 
     public void SetConsoleLogging (bool consoleLogging)
@@ -152,7 +166,9 @@ public class MParticleiOS : IMParticleSDK {
             return;
         }
 
-        _SetConsoleLogging (consoleLogging);        
+        int enableConsoleLogging = consoleLogging ? 1 : 0;
+
+        _SetConsoleLogging (enableConsoleLogging);
     }
 
     public MParticle.MPEnvironment GetEnvironment ()
@@ -162,7 +178,7 @@ public class MParticleiOS : IMParticleSDK {
             return MParticle.MPEnvironment.Development;
         }
 
-		return (MParticle.MPEnvironment) Enum.Parse(typeof(MParticle.MPEnvironment),_GetEnvironment ().ToString());
+		return (MParticle.MPEnvironment) Enum.Parse(typeof(MParticle.MPEnvironment),_GetEnvironment ().ToString ());
     }
 
     public bool GetOptOut ()
@@ -206,7 +222,27 @@ public class MParticleiOS : IMParticleSDK {
     }
 
     // Basic Tracking
-    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long eventLength, string category)
+    public void LogEvent (MPEvent mpEvent)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+
+        string eventInfoJSON = SerializeDictionary (mpEvent.Info);
+
+        double startTime = 0;
+        double endTime = 0;
+        if (mpEvent.StartTime.CompareTo(epoch) > 0)
+        {
+            startTime = DateTimeToSeconds (mpEvent.StartTime);
+            endTime = DateTimeToSeconds (mpEvent.EndTime);
+        }
+
+        _LogEvent (mpEvent.Name, (int)mpEvent.EventType, eventInfoJSON, startTime, endTime, (double)mpEvent.Duration, mpEvent.Category);
+    }
+
+    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long startTime, long endTime, long duration, string category)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
@@ -215,7 +251,7 @@ public class MParticleiOS : IMParticleSDK {
         
         string eventInfoJSON = SerializeDictionary (eventInfo);
 
-        _LogEvent (eventName, (int)eventType, eventInfoJSON, (double)eventLength, category);
+        _LogEvent (eventName, (int)eventType, eventInfoJSON, (double)startTime, (double)endTime, (double)duration, category);
     }
 
     public void LogScreen (string screenName, Dictionary<string, string> eventInfo)

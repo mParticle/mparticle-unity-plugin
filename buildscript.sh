@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2014. mParticle, Inc.  All Rights Reserved.
+# Copyright 2014-2015. mParticle, Inc.  All Rights Reserved.
 #
 # This script must be copied to and run from the Assets/Plugins of your Unity project.
 #

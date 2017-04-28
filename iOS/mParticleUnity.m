@@ -2,7 +2,7 @@
 //  mParticleUnity.m
 //  mParticle
 //
-//  Copyright (c) 2014 mParticle. All rights reserved.
+//  Copyright (c) 2014-2015 mParticle. All rights reserved.
 //
 
 #import "mParticleUnity.h"
@@ -84,11 +84,21 @@ extern "C" {
     //
     // Basic Tracking
     //
-    void _LogEvent(const char *eventName, int eventType, const char *eventInfoJSON, double eventLength, const char *category) {
+    void _LogEvent(const char *eventName, int eventType, const char *eventInfoJSON, double startTime, double endTime, double duration, const char *category) {
         MPEvent *event = [[MPEvent alloc] initWithName:stringWithCString(eventName) type:eventType];
         event.info = dictionaryWithJSON(eventInfoJSON);
-        event.duration = @(eventLength);
-        event.category = stringWithCString(category);
+
+        if (startTime > 0) {
+            event.startTime = [NSDate dateWithTimeIntervalSince1970:startTime];
+            event.endTime = [NSDate dateWithTimeIntervalSince1970:endTime];
+        }
+
+        event.duration = @(duration);
+
+        if (category != NULL) {
+            event.category = stringWithCString(category);
+        }
+
         [[MParticle sharedInstance] logEvent:event];
     }
     
