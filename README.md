@@ -18,9 +18,9 @@ Download and import the plugin package to get started:
 
 #### Automated Xcode configuration
 
- `mParticle.unitypackage` includes `PostprocessBuildPlayer_mParticle` that automates several Xcode project configuration steps that are required to successfully build your application for the iOS platform. During the build process, Unity will locate and execute this script.
+`mParticle.unitypackage` includes `PostprocessBuildPlayer_mParticle` that automates several Xcode project configuration steps that are required to successfully build your application for the iOS platform. During the build process, Unity will locate and execute this script.
 
-> Unity 5.3 removed support for post-process scripts from executing - if this applies to you, you can also run the script manually.
+> Starting with Unity 5.3, post-process scripts are not run automatically. In those cases, the script will be run by `mParticleBuildPostprocessor.cs` instead.
 
 #### Manual Xcode configuration
 
