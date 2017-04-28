@@ -1,99 +1,15 @@
 //
 //  mParticle.h
 //
-//  Copyright 2014. mParticle, Inc. All Rights Reserved.
+//  Copyright 2014-2015. mParticle, Inc. All Rights Reserved.
 //
 
-#import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <CoreLocation/CoreLocation.h>
 #import <mParticle/MPUserSegments.h>
 #import <mParticle/MPProduct.h>
-
-// Event Types
-typedef NS_ENUM(NSUInteger, MPEventType) {
-    /** Use for navigation related events */
-    MPEventTypeNavigation = 1,
-    /** Use for location related events */
-    MPEventTypeLocation,
-    /** Use for search related events */
-    MPEventTypeSearch,
-    /** Use for transaction related events */
-    MPEventTypeTransaction,
-    /** Use for user content related events */
-    MPEventTypeUserContent,
-    /** Use for user preference related events */
-    MPEventTypeUserPreference,
-    /** Use for social related events */
-    MPEventTypeSocial,
-    /** Use for other types of events not contained in this enum */
-    MPEventTypeOther
-};
-
-// User Identity constants
-typedef NS_ENUM(NSUInteger, MPUserIdentity) {
-    /** User identity other */
-    MPUserIdentityOther = 0,
-    /** User identity customer id. This is an id issue by your own system */
-    MPUserIdentityCustomerId,
-    /** User identity Facebook */
-    MPUserIdentityFacebook,
-    /** User identity Twitter */
-    MPUserIdentityTwitter,
-    /** User identity Goolge */
-    MPUserIdentityGoogle,
-    /** User identity Microsoft */
-    MPUserIdentityMicrosoft,
-    /** User identity Yahoo! */
-    MPUserIdentityYahoo,
-    /** User identity Email */
-    MPUserIdentityEmail,
-    /** User identity Alias */
-    MPUserIdentityAlias
-};
-
-// Supported Social Networks
-typedef NS_OPTIONS(uint64_t, MPSocialNetworks) {
-    /** Social Network Facebook */
-    MPSocialNetworksFacebook = 1 << 1,
-    /** Social Network Twitter */
-    MPSocialNetworksTwitter = 1 << 2
-};
-
-// Installation Types
-typedef NS_ENUM(NSInteger, MPInstallationType) {
-    /** mParticle auto-detects the installation type. This is the default value */
-    MPInstallationTypeAutodetect = 0,
-    /** Informs mParticle this binary is a new installation */
-    MPInstallationTypeKnownInstall,
-    /** Informs mParticle this binary is an upgrade */
-    MPInstallationTypeKnownUpgrade,
-    /** Informs mParticle this binary is the same version. This value is for internal use only. It should not be used by developers */
-    MPInstallationTypeKnownSameVersion
-};
-
-// eCommerce Product Events
-typedef NS_ENUM(NSInteger, MPProductEvent) {
-    /** To be used when a product is viewed by a user */
-    MPProductEventView = 0,
-    /** To be used when a user adds a product to a wishlist */
-    MPProductEventAddedToWishList,
-    /** To be used when a user removes a product from a wishlist */
-    MPProductEventRemovedFromWishList,
-    /** To be used when a user adds a product to a cart */
-    MPProductEventAddedToCart,
-    /** To be used when a user removes a product from a cart */
-    MPProductEventRemovedFromCart
-};
-
-typedef NS_ENUM(NSUInteger, MPEnvironment) {
-    /** Tells the SDK to auto detect the current run environment (initial value) */
-    MPEnvironmentAutoDetect = 0,
-    /** The SDK is running in development mode (Debug/Development or AdHoc) */
-    MPEnvironmentDevelopment,
-    /** The SDK is running in production mode (App Store) */
-    MPEnvironmentProduction
-};
+#import <mParticle/MPEvent.h>
+#import <mParticle/MPEnums.h>
 
 /**
  Social Networks callback handler.
@@ -136,16 +52,11 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
 @property (nonatomic, unsafe_unretained, readwrite) BOOL consoleLogging;
 
 /**
- The environment property returns the running SDK environment: Development or Production. You can 
- set it to a different value, from the one initially detected, or set it to auto detection (default 
- initial value). Auto detection forces the SDK to detect whether it is running in Development or 
- Production mode the next time the environment property is used.
- Trying to set this property to MPEnvironmentDevelopment after the SDK has detected the running
- environment to be MPEnvironmentProduction will result in no action. This is to avoid the situation
- of setting the SDK environment to development after the app has been deployed to the App Store.
+ The environment property returns the running SDK environment: Development or Production.
  @see MPEnvironment
+ @see startWithKey:secret:installationType:environment:
  */
-@property (nonatomic, unsafe_unretained, readwrite) MPEnvironment environment;
+@property (nonatomic, unsafe_unretained, readonly) MPEnvironment environment;
 
 /**
  Gets/Sets the current location of the active session.
@@ -176,6 +87,12 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
 @property (nonatomic, unsafe_unretained, readwrite) NSTimeInterval sessionTimeout;
 
 /**
+ Unique identifier for this app running on this device. This unique identifier is synchronized with the mParticle servers.
+ @retuns A string containing the unique identifier or nil, if communication with the server could not yet be established.
+ */
+@property (nonatomic, strong, readonly) NSString *uniqueIdentifier;
+
+/**
  Gets/Sets the interval to upload data to mParticle servers.
  */
 @property (nonatomic, unsafe_unretained, readwrite) NSTimeInterval uploadInterval;
@@ -192,7 +109,7 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  Starts the API with the api_key and api_secret saved in MParticleConfig.plist.  If you
  use startAPI instead of startAPIWithKey:secret: your API key and secret must
  be added to these parameters in the MParticleConfig.plist.
- @see startWithKey:secret:installationType:
+ @see startWithKey:secret:installationType:environment:
  */
 - (void)start;
 
@@ -203,7 +120,7 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  will override the api_key and api_secret parameters of the (optional) MParticleConfig.plist.
  @param apiKey The API key for your account
  @param secret The API secret for your account
- @see startWithKey:secret:installationType:
+ @see startWithKey:secret:installationType:environment:
  */
 - (void)startWithKey:(NSString *)apiKey secret:(NSString *)secret;
 
@@ -215,62 +132,118 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  @param apiKey The API key for your account
  @param secret The API secret for your account
  @param installType You can tell the mParticle SDK if this is a new install, an upgrade, or let the SDK detect it automatically.
+ @param environment The environment property defining the running SDK environment: Development or Production. You can set it to a specific value, or let the
+ SDK auto-detect the environment for you. Once the app is deployed to the App Store, setting this parameter will have no effect, since the SDK will set
+ the environment to production.
+ @see MPInstallationType
+ @see MPEnvironment
  */
-- (void)startWithKey:(NSString *)apiKey secret:(NSString *)secret installationType:(MPInstallationType)installationType;
+- (void)startWithKey:(NSString *)apiKey secret:(NSString *)secret installationType:(MPInstallationType)installationType environment:(MPEnvironment)environment;
 
 #pragma mark - Basic Tracking
 /**
- Logs an event. The eventInfo is limited to 100 key value pairs.
- The event name and strings in eventInfo cannot contain more than 255 characters.
- @param eventName The name of the event to be tracked (required not nil)
- @param eventType An enum value that indicates the type of event that is to be tracked
- @see logEvent:eventType:eventInfo:eventLength:category:
+ Begins timing an event. There can be many timed events going on at the same time, the only requirement is that each
+ concurrent timed event must have a unique event name. After beginning a timed event you don't have to keep a reference
+ to the event instance being timed, you can use the eventWithName: method to retrive it later when ending the timed event.
+ @param event An instance of MPEvent
+ @see MPEvent
  */
-- (void)logEvent:(NSString *)eventName eventType:(MPEventType)eventType;
+- (void)beginTimedEvent:(MPEvent *)event;
+
+/**
+ Ends timing an event and logs its data to the mParticle SDK. If you didn't keep a reference to the event
+ being timed, you can use the eventWithName: method to retrive it.
+ @param event An instance of MPEvent
+ @see beginTimedEvent:
+ */
+- (void)endTimedEvent:(MPEvent *)event;
+
+/**
+ When working with timed events you don't need to keep a reference to the event being timed. You can use this method
+ to retrive the event being timed passing the event name as parameter. If an instance of MPEvent, with a matching
+ event name cannot be found, this method will return nil.
+ @param eventName A string with the event name associated with the event being timed
+ @returns An instance of MPEvent, if one could be found, or nil.
+ @see endTimedEvent:
+ */
+- (MPEvent *)eventWithName:(NSString *)eventName;
+
+/**
+ Logs an event. This is one of the most fundamental method of the SDK. Developers define all the characteristics
+ of an event (name, type, attributes, etc) in an instance of MPEvent and pass that instance to this method to 
+ log its data to the mParticle SDK.
+ @param event An instance of MPEvent
+ @see MPEvent
+ */
+- (void)logEvent:(MPEvent *)event;
 
 /**
  Logs an event. The eventInfo is limited to 100 key value pairs.
  The event name and strings in eventInfo cannot contain more than 255 characters.
- @param eventName The name of the event to be tracked (required not nil)
- @param eventType An enum value that indicates the type of event that is to be tracked
- @param eventInfo A dictionary containing further information about the event
- @see logEvent:eventType:eventInfo:eventLength:category:
+ @param eventName The name of the event to be logged (required not nil)
+ @param eventType An enum value that indicates the type of event to be logged
+ @see logEvent:
+ */
+- (void)logEvent:(NSString *)eventName eventType:(MPEventType)eventType __attribute__((deprecated("use logEvent: instead")));
+
+/**
+ Logs an event. This is a convenience method for logging simple events; internally it creates an instance of MPEvent
+ and calls logEvent:
+ @param eventName The name of the event to be logged (required not nil.) The string cannot be longer than 255 characters
+ @param eventType An enum value that indicates the type of event to be logged
+ @param eventInfo A dictionary containing further information about the event. This dictionary is limited to 100 key 
+ value pairs. Keys must be strings (up to 255 characters) and values can be strings (up to 255 characters), numbers,
+ booleans, or dates
+ @see logEvent:
  */
 - (void)logEvent:(NSString *)eventName eventType:(MPEventType)eventType eventInfo:(NSDictionary *)eventInfo;
 
 /**
  Logs an event. The eventInfo is limited to 100 key value pairs.
  The event name and strings in eventInfo cannot contain more than 255 characters.
- @param eventName The name of the event to be tracked (required not nil)
- @param eventType An enum value that indicates the type of event that is to be tracked
+ @param eventName The name of the event to be logged (required not nil)
+ @param eventType An enum value that indicates the type of event to be logged
  @param eventInfo A dictionary containing further information about the event
  @param eventLength The duration of the event
- @see logEvent:eventType:eventInfo:eventLength:category:
+ @see logEvent:
  */
-- (void)logEvent:(NSString *)eventName eventType:(MPEventType)eventType eventInfo:(NSDictionary *)eventInfo eventLength:(NSTimeInterval)eventLength;
+- (void)logEvent:(NSString *)eventName eventType:(MPEventType)eventType eventInfo:(NSDictionary *)eventInfo eventLength:(NSTimeInterval)eventLength __attribute__((deprecated("use logEvent: instead")));
 
 /**
  Logs an event. The eventInfo is limited to 100 key value pairs.
  The event name, strings in eventInfo, and the category name cannot contain more than 255 characters.
- @param eventName The name of the event to be tracked (required not nil)
- @param eventType An enum value that indicates the type of event that is to be tracked
+ @param eventName The name of the event to be logged (required not nil)
+ @param eventType An enum value that indicates the type of event to be logged
  @param eventInfo A dictionary containing further information about the event
  @param eventLength The duration of the event
  @param category A string with the developer/company defined category of the event
+ @see logEvent:
  */
-- (void)logEvent:(NSString *)eventName eventType:(MPEventType)eventType eventInfo:(NSDictionary *)eventInfo eventLength:(NSTimeInterval)eventLength category:(NSString *)category;
+- (void)logEvent:(NSString *)eventName eventType:(MPEventType)eventType eventInfo:(NSDictionary *)eventInfo eventLength:(NSTimeInterval)eventLength category:(NSString *)category __attribute__((deprecated("use logEvent: instead")));
+
+/**
+ Logs a screen event. Developers define all the characteristics of a screen event (name, attributes, etc) in an 
+ instance of MPEvent and pass that instance to this method to log its data to the mParticle SDK.
+ @param event An instance of MPEvent
+ @see MPEvent
+ */
+- (void)logScreenEvent:(MPEvent *)event;
 
 /**
  Logs a screen with a screen name.
- @param screenName The name of the screen to be tracked (required not nil)
- @see logScreen:eventInfo:
+ @param screenName The name of the screen to be logged (required not nil)
+ @see logScreenEvent:
  */
-- (void)logScreen:(NSString *)screenName;
+- (void)logScreen:(NSString *)screenName __attribute__((deprecated("use logScreenEvent: instead")));
 
 /**
- Logs a screen with a screen name and an attributes dictionary.
- @param screenName The name of the screen to be tracked (required not nil)
- @param eventInfo A dictionary containing further information about the screen
+ Logs a screen event. This is a convenience method for logging simple screen events; internally it creates an instance
+ of MPEvent and calls logScreenEvent:
+ @param screenName The name of the screen to be logged (required not nil and up to 255 characters)
+ @param eventInfo A dictionary containing further information about the screen. This dictionary is limited to 100 key
+ value pairs. Keys must be strings (up to 255 characters) and values can be strings (up to 255 characters), numbers,
+ booleans, or dates
+ @see logScreenEvent:
  */
 - (void)logScreen:(NSString *)screenName eventInfo:(NSDictionary *)eventInfo;
 
@@ -331,9 +304,18 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
 /**
  Logs an event with a product, such as viewing, adding to a shopping cart, etc.
  @param productEvent The event, from the MPProductEvent enum, describing the log action (view, remove from wish list, etc)
- @apram product An instance of MPProduct representing the product in question
+ @param product An instance of MPProduct representing the product in question
+ @see MPProductEvent
+ @see MPProduct
  */
 - (void)logProductEvent:(MPProductEvent)productEvent product:(MPProduct *)product;
+
+/**
+ Logs an e-commerce transaction event.
+ @param product An instance of MPProduct
+ @see MPProduct
+ */
+- (void)logTransaction:(MPProduct *)product;
 
 /**
  Logs an e-commerce transaction event.
@@ -345,10 +327,9 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  @param revenueAmount The total revenue of a transaction, including tax and shipping. If free or non-applicable use 0
  @param taxAmount The total tax for a transaction. If free or non-applicable use 0
  @param shippingAmount The total cost of shipping for a transaction. If free or non-applicable use 0
- 
- @see logTransaction:affiliation:sku:unitPrice:quantity:revenueAmount:taxAmount:shippingAmount:transactionId:productCategory:currencyCode:
+ @see logTransaction:
  */
-- (void)logTransaction:(NSString *)productName affiliation:(NSString *)affiliation sku:(NSString *)sku unitPrice:(double)unitPrice quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount taxAmount:(double)taxAmount shippingAmount:(double)shippingAmount;
+- (void)logTransaction:(NSString *)productName affiliation:(NSString *)affiliation sku:(NSString *)sku unitPrice:(double)unitPrice quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount taxAmount:(double)taxAmount shippingAmount:(double)shippingAmount __attribute__((deprecated("use logTransaction: instead")));
 
 /**
  Logs an e-commerce transaction event.
@@ -361,10 +342,9 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  @param taxAmount The total tax for a transaction. If free or non-applicable use 0
  @param shippingAmount The total cost of shipping for a transaction. If free or non-applicable use 0
  @param transactionId A unique ID representing the transaction. This ID should not collide with other transaction IDs. If nil, mParticle will generate a random string
- 
- @see logTransaction:affiliation:sku:unitPrice:quantity:revenueAmount:taxAmount:shippingAmount:transactionId:productCategory:currencyCode:
+ @see logTransaction:
  */
-- (void)logTransaction:(NSString *)productName affiliation:(NSString *)affiliation sku:(NSString *)sku unitPrice:(double)unitPrice quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount taxAmount:(double)taxAmount shippingAmount:(double)shippingAmount transactionId:(NSString *)transactionId;
+- (void)logTransaction:(NSString *)productName affiliation:(NSString *)affiliation sku:(NSString *)sku unitPrice:(double)unitPrice quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount taxAmount:(double)taxAmount shippingAmount:(double)shippingAmount transactionId:(NSString *)transactionId __attribute__((deprecated("use logTransaction: instead")));
 
 /**
  Logs an e-commerce transaction event.
@@ -378,10 +358,9 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  @param shippingAmount The total cost of shipping for a transaction. If free or non-applicable use 0
  @param transactionId A unique ID representing the transaction. This ID should not collide with other transaction IDs. If nil, mParticle will generate a random string
  @param productCategory A category to which the product belongs
- 
- @see logTransaction:affiliation:sku:unitPrice:quantity:revenueAmount:taxAmount:shippingAmount:transactionId:productCategory:currencyCode:
+ @see logTransaction:
  */
-- (void)logTransaction:(NSString *)productName affiliation:(NSString *)affiliation sku:(NSString *)sku unitPrice:(double)unitPrice quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount taxAmount:(double)taxAmount shippingAmount:(double)shippingAmount transactionId:(NSString *)transactionId productCategory:(NSString *)productCategory;
+- (void)logTransaction:(NSString *)productName affiliation:(NSString *)affiliation sku:(NSString *)sku unitPrice:(double)unitPrice quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount taxAmount:(double)taxAmount shippingAmount:(double)shippingAmount transactionId:(NSString *)transactionId productCategory:(NSString *)productCategory __attribute__((deprecated("use logTransaction: instead")));
 
 /**
  Logs an e-commerce transaction event.
@@ -396,15 +375,9 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  @param transactionId A unique ID representing the transaction. This ID should not collide with other transaction IDs. If nil, mParticle will generate a random string
  @param productCategory A category to which the product belongs
  @param currencyCode The local currency of a transaction. If nil, mParticle will use "USD"
+ @see logTransaction:
  */
-- (void)logTransaction:(NSString *)productName affiliation:(NSString *)affiliation sku:(NSString *)sku unitPrice:(double)unitPrice quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount taxAmount:(double)taxAmount shippingAmount:(double)shippingAmount transactionId:(NSString *)transactionId productCategory:(NSString *)productCategory currencyCode:(NSString *)currencyCode;
-
-/**
- Logs an e-commerce transaction event.
- @param product An instance of MPProduct
- @see MPProduct
- */
-- (void)logTransaction:(MPProduct *)product;
+- (void)logTransaction:(NSString *)productName affiliation:(NSString *)affiliation sku:(NSString *)sku unitPrice:(double)unitPrice quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount taxAmount:(double)taxAmount shippingAmount:(double)shippingAmount transactionId:(NSString *)transactionId productCategory:(NSString *)productCategory currencyCode:(NSString *)currencyCode __attribute__((deprecated("use logTransaction: instead")));
 
 /**
  Increases the LTV (LifeTime Value) amount of a user.
@@ -424,7 +397,7 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
 #pragma mark - Location
 /**
  Begins geographic location tracking.
-
+ 
  The desired accuracy of the location is determined by a passed in constant for accuracy.
  Choices are kCLLocationAccuracyBestForNavigation, kCLLocationAccuracyBest,
  kCLLocationAccuracyNearestTenMeters, kCLLocationAccuracyHundredMeters,
@@ -433,6 +406,19 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  @param distanceFilter The minimum distance (measured in meters) a device must move before an update event is generated.
  */
 - (void)beginLocationTracking:(CLLocationAccuracy)accuracy minDistance:(CLLocationDistance)distanceFilter;
+
+/**
+ Begins geographic location tracking.
+ 
+ The desired accuracy of the location is determined by a passed in constant for accuracy.
+ Choices are kCLLocationAccuracyBestForNavigation, kCLLocationAccuracyBest,
+ kCLLocationAccuracyNearestTenMeters, kCLLocationAccuracyHundredMeters,
+ kCLLocationAccuracyKilometer, and kCLLocationAccuracyThreeKilometers.
+ @param accuracy The desired accuracy
+ @param distanceFilter The minimum distance (measured in meters) a device must move before an update event is generated.
+ @param authorizationRequest Type of authorization requested to use location services
+ */
+- (void)beginLocationTracking:(CLLocationAccuracy)accuracy minDistance:(CLLocationDistance)distanceFilter authorizationRequest:(MPLocationAuthorizationRequest)authorizationRequest;
 
 /**
  Ends geographic location tracking.
@@ -482,14 +468,16 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
 
 #pragma mark - Session management
 /**
- Begins a new user session. It will end the current session, if one is active.
+ (Deprecated) Begins a new user session. It will end the current session, if one is active.
+ @see mParticleSessionDidBeginNotification
  */
-- (void)beginSession;
+- (void)beginSession __attribute__((deprecated("Register to receive the mParticleSessionDidBegin notification instead.")));
 
 /**
- Ends the current session.
+ (Deprecated) Ends the current session.
+ @see mParticleSessionDidEndNotification
  */
-- (void)endSession;
+- (void)endSession __attribute__((deprecated("Register to receive the mParticleSessionDidEnd notification instead.")));
 
 /**
  Increments the value of a session attribute by the provided amount. If the key does not
@@ -524,6 +512,15 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
  network with it respective result.
  */
 - (void)askForAccessToSocialNetworks:(MPSocialNetworks)socialNetwork completionHandler:(MPSocialNetworksHandler)completionHandler;
+
+#pragma mark - Surveys
+/**
+ Returns the survey URL for a given provider.
+ @param surveyProvider The survey provider
+ @returns A string with the URL to the survey
+ @see MPSurveyProvider
+ */
+- (NSString *)surveyURL:(MPSurveyProvider)surveyProvider;
 
 #pragma mark - User Identity
 /**
@@ -611,13 +608,15 @@ typedef void(^MPSocialNetworksHandler)(MPSocialNetworks socialNetwork, BOOL gran
 - (void)setSandboxed:(BOOL)sandboxed UNAVAILABLE_ATTRIBUTE;
 
 - (void)registerForPushNotificationWithTypes:(UIRemoteNotificationType)pushNotificationTypes __attribute__((unavailable("use Apple's own methods to register for remote notifications.")));
-
 - (void)unregisterForPushNotifications __attribute__((unavailable("use Apple's own methods to unregister from remote notifications.")));
+
+- (void)setEnvironment:(MPEnvironment)environment __attribute__((unavailable("use startWithKey:secret:installationType:environment: to set the running environment.")));
 
 /**
  @deprecated use startWithKey:secret:installationType: instead
  @see environment property
  */
-- (void)startWithKey:(NSString *)apiKey secret:(NSString *)secret sandboxMode:(BOOL)sandboxMode installationType:(MPInstallationType)installationType __attribute__((unavailable("use startWithKey:secret:installationType: instead")));
+- (void)startWithKey:(NSString *)apiKey secret:(NSString *)secret sandboxMode:(BOOL)sandboxMode installationType:(MPInstallationType)installationType __attribute__((unavailable("use startWithKey:secret:installationType:environment: instead")));
+- (void)startWithKey:(NSString *)apiKey secret:(NSString *)secret installationType:(MPInstallationType)installationType __attribute__((unavailable("use startWithKey:secret:installationType:environment: instead.")));
 
 @end

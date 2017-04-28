@@ -31,7 +31,13 @@ public class MParticleiOS : IMParticleSDK {
     
     [DllImport ("__Internal")]
     private static extern void _SetSessionTimeout (double sessionTimeout);
-    
+
+    [DllImport ("__Internal")]
+    private static extern double _GetUploadInterval();
+
+    [DllImport ("__Internal")]
+    private static extern void _SetUploadInterval(double uploadInterval);
+
     // Basic Tracking
     [DllImport ("__Internal")]
     private static extern void _LogEvent (string eventName, int eventType, string eventInfoJSON, double startTime, double endTime, double duration, string category);
@@ -57,6 +63,9 @@ public class MParticleiOS : IMParticleSDK {
 
     // eCommerce Transactions
     [DllImport ("__Internal")]
+    private static extern void _LogProductEvent(int productEvent, string productName, string affiliation, string sku, double unitPrice, int quantity, double totalAmount, double taxAmount, double shippingAmount, string transactionId, string category, string currency);
+
+    [DllImport ("__Internal")]
     private static extern void _LogTransaction (string productName, string affiliation, string sku, double unitPrice, int quantity, double revenueAmount, double taxAmount, double shippingAmount, string transactionId, string category, string currency);
     
     [DllImport ("__Internal")]
@@ -73,19 +82,9 @@ public class MParticleiOS : IMParticleSDK {
     [DllImport ("__Internal")]
     private static extern void _LogNetworkPerformance (string url, long startTime, string method, long length, long bytesSent, long bytesReceived);
     
-    // Push Notifications
-    [DllImport ("__Internal")]
-    private static extern void _RegisterForPushNotificationWithTypes (uint pushNotificationTypes);
-
-    [DllImport ("__Internal")]
-    private static extern void _UnregisterForPushNotifications ();
-    
     // Session management
     [DllImport ("__Internal")]
-    private static extern void _BeginSession ();
-    
-    [DllImport ("__Internal")]
-    private static extern void _EndSession ();
+    private static extern long _IncrementSessionAttribute (string key, long incrementValue);
     
     [DllImport ("__Internal")]
     private static extern void _SetSessionAttribute (string key, string val);
@@ -95,6 +94,12 @@ public class MParticleiOS : IMParticleSDK {
     
     // User identity
     [DllImport ("__Internal")]
+    private static extern long _IncrementUserAttribute (string key, long incrementValue);
+
+    [DllImport ("__Internal")]
+    private static extern void _Logout ();
+
+    [DllImport ("__Internal")]
     private static extern void _SetUserAttribute (string key, string val);
     
     [DllImport ("__Internal")]
@@ -102,6 +107,9 @@ public class MParticleiOS : IMParticleSDK {
     
     [DllImport ("__Internal")]
     private static extern void _SetUserTag (string tag);
+
+    [DllImport ("__Internal")]
+    private static extern void _RemoveUserAttribute (string key);
 
     /*
      Private variables
@@ -111,7 +119,6 @@ public class MParticleiOS : IMParticleSDK {
     /*
      Private methods
      */
-
     public static double DateTimeToSeconds (DateTime sourceDateTime)
     {
         DateTime referenceDateTime = (sourceDateTime.Kind == DateTimeKind.Unspecified) ? DateTime.SpecifyKind(sourceDateTime, DateTimeKind.Utc) : sourceDateTime.ToUniversalTime();
@@ -178,7 +185,7 @@ public class MParticleiOS : IMParticleSDK {
             return MParticle.MPEnvironment.Development;
         }
 
-		return (MParticle.MPEnvironment) Enum.Parse(typeof(MParticle.MPEnvironment),_GetEnvironment ().ToString ());
+        return (MParticle.MPEnvironment) Enum.Parse(typeof(MParticle.MPEnvironment),_GetEnvironment ().ToString ());
     }
 
     public bool GetOptOut ()
@@ -219,6 +226,26 @@ public class MParticleiOS : IMParticleSDK {
         }
         
         _SetSessionTimeout (sessionTimeout);
+    }
+
+    public double GetUploadInterval ()
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return 0;
+        }
+        
+        return _GetUploadInterval();
+    }
+
+    public void SetUploadInterval (double uploadInterval)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+        
+        _SetUploadInterval (uploadInterval);
     }
 
     // Basic Tracking
@@ -331,15 +358,15 @@ public class MParticleiOS : IMParticleSDK {
         _LogError (message, eventInfoJSON);
     }
 
-	public void LogException (string condition, string stacktrace)
-	{
-		if (Application.platform == RuntimePlatform.OSXEditor)
-		{
-			return;
-		}
-		
-		_LogException (condition, condition, stacktrace);
-	}
+    public void LogException (string condition, string stacktrace)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+        
+        _LogException (condition, condition, stacktrace);
+    }
 
     public void LogException (System.Exception exception, Dictionary<string, string> eventInfo, string message)
     {
@@ -352,6 +379,27 @@ public class MParticleiOS : IMParticleSDK {
     }
 
     // eCommerce Transactions
+    public void LogProductEvent (MParticle.ProductEvent productEvent, MPProduct product)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+
+        _LogProductEvent ((int)productEvent,
+                          product.ProductName,
+                          product.Affiliation,
+                          product.ProductSku,
+                          product.UnitPrice,
+                          product.Quantity,
+                          product.TotalAmount,
+                          product.TaxAmount,
+                          product.ShippingAmount,
+                          product.TransactionId,
+                          product.ProductCategory,
+                          product.CurrencyCode);
+    }
+
     public void LogTransaction (MPProduct product)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
@@ -364,7 +412,7 @@ public class MParticleiOS : IMParticleSDK {
                          product.ProductSku,
                          product.UnitPrice,
                          product.Quantity,
-                         product.TotalRevenue,
+                         product.TotalAmount,
                          product.TaxAmount,
                          product.ShippingAmount,
                          product.TransactionId,
@@ -423,45 +471,24 @@ public class MParticleiOS : IMParticleSDK {
     // Push Notifications
     public void EnablePushNotifications (string androidSenderId, uint iOSPushNotificationTypes)
     {
-        if (Application.platform == RuntimePlatform.OSXEditor)
-        {
-            return;
-        }
-
-        _RegisterForPushNotificationWithTypes (iOSPushNotificationTypes);
     }
 
     public void DisablePushNotifications ()
     {
-        if (Application.platform == RuntimePlatform.OSXEditor)
-        {
-            return;
-        }
-
-        _UnregisterForPushNotifications ();
     }
     
     // Session management
-    public void BeginSession ()
+    public long IncrementSessionAttribute (string key, long incrementValue)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
-            return;
+            return 0;
         }
 
-        _BeginSession ();
+        long newValue = _IncrementSessionAttribute (key, incrementValue);
+        return newValue;
     }
-    
-    public void EndSession ()
-    {
-        if (Application.platform == RuntimePlatform.OSXEditor)
-        {
-            return;
-        }
 
-        _EndSession ();
-    }
-    
     public void SetSessionAttribute (string key, string val)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
@@ -483,6 +510,27 @@ public class MParticleiOS : IMParticleSDK {
     }
     
     // User identity
+    public long IncrementUserAttribute (string key, long incrementValue)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return 0;
+        }
+
+        long newValue = _IncrementUserAttribute (key, incrementValue);
+        return newValue;
+    }
+
+    public void Logout ()
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+
+        _Logout ();
+    }
+
     public void SetUserAttribute (string key, string val)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
@@ -511,6 +559,16 @@ public class MParticleiOS : IMParticleSDK {
         }
 
         _SetUserTag (tag);
+    }
+
+    public void RemoveUserAttribute (string key)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+
+        _RemoveUserAttribute (key);
     }
 }
 

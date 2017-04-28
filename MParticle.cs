@@ -13,6 +13,8 @@ public interface IMParticleSDK
     void SetOptOut (bool optOut);
     double GetSessionTimeout ();
     void SetSessionTimeout (double sessionTimeout);
+    double GetUploadInterval ();
+    void SetUploadInterval (double uploadInterval);
     // Basic Tracking
     void LogEvent (MPEvent mpEvent);
     void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long startTime, long endTime, long duration, string category);
@@ -26,6 +28,7 @@ public interface IMParticleSDK
     void LogException (System.Exception exception, Dictionary<string, string> eventInfo, string message);
     void LogException (string condition, string stacktrace);
     // eCommerce Transactions
+    void LogProductEvent (MParticle.ProductEvent productEvent, MPProduct product);
     void LogTransaction (MPProduct product);
     void LogLTVIncrease (decimal increaseAmount, string eventName, Dictionary<string, string> eventInfo);
     // Location
@@ -38,14 +41,16 @@ public interface IMParticleSDK
     void DisablePushNotifications ();
     void EnablePushNotifications (string androidSenderId, uint iOSPushNotificationTypes);
     // Session management
-    void BeginSession ();
-    void EndSession ();
+    long IncrementSessionAttribute (string key, long incrementValue);
     void SetSessionAttribute (string key, string val);
     void Upload ();
     // User identity
+    long IncrementUserAttribute (string key, long incrementValue);
+    void Logout ();
     void SetUserAttribute (string key, string val);
     void SetUserIdentity (string identity, MParticle.UserIdentity identityType);
     void SetUserTag (string tag);
+    void RemoveUserAttribute (string key);
 }
 
 public class MParticle : MonoBehaviour, IMParticleSDK
@@ -57,6 +62,8 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     public enum LocationRange {GPS = 1, Network = 500, Passive = 3000};
 
     public enum UserIdentity {Other = 0, CustomerId, Facebook, Twitter, Google, Microsoft, Yahoo, Email, Alias};
+
+    public enum ProductEvent {View = 0, AddedToWishList, RemovedFromWishList, AddedToCart, RemovedFromCart};
 
     private static MParticle instance;
 
@@ -210,6 +217,34 @@ public class MParticle : MonoBehaviour, IMParticleSDK
         set { mParticleInstance.SetSessionTimeout (value); }
     }
 
+    /// <summary>
+    /// Gets the interval, in seconds, to upload data to mParticle servers.
+    /// </summary>
+    /// <returns>The upload interval, in seconds.</returns>
+    public double GetUploadInterval ()
+    {
+        return mParticleInstance.GetUploadInterval ();
+    }
+
+    /// <summary>
+    /// Sets the interval, in seconds, to upload data to mParticle servers.
+    /// </summary>
+    /// <returns></returns>
+    public void SetUploadInterval (double uploadInterval)
+    {
+        mParticleInstance.SetUploadInterval (uploadInterval);
+    }
+
+    /// <summary>
+    /// Gets/Sets the interval, in seconds, to upload data to mParticle servers.
+    /// </summary>
+    /// <returns>The upload interval, in seconds.</returns>
+    public double UploadInterval
+    {
+        get { return mParticleInstance.GetUploadInterval (); }
+        set { mParticleInstance.SetUploadInterval (value); }
+    }
+
     //
     // Basic Tracking
     //
@@ -218,6 +253,7 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     /// Logs an event. This is one of the most fundamental method of the SDK. Developers define all the characteristics
     /// of an event (name, type, attributes, etc) in an instance of MPEvent and pass that instance to this method to 
     /// log its data to the mParticle SDK.
+    /// <seealso cref="MPEvent"/>
     /// </summary>
     /// <param name="mpEvent">An instance of MPEvent</param>
     public void LogEvent (MPEvent mpEvent)
@@ -256,6 +292,7 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     /// <summary>
     /// Logs a screen event. Developers define all the characteristics of a screen event (name, attributes, etc) in an 
     /// instance of MPEvent and pass that instance to this method to log its data to the mParticle SDK.
+    /// <seealso cref="MPEvent"/>
     /// </summary>
     /// <param name="mpEvent">An instance of MPEvent</param>
     public void LogScreen (MPEvent mpEvent)
@@ -390,6 +427,17 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     //
 
     /// <summary>
+    /// Logs an event with a product, such as viewing, adding to a shopping cart, etc.
+    /// <seealso cref="MPProduct"/>
+    /// </summary>
+    /// <param name="productEvent">The event, from the ProductEvent enum, describing the log action (view, remove from wish list, etc)</param>
+    /// <param name="product">An instance of MPProduct.</param>
+    public void LogProductEvent (MParticle.ProductEvent productEvent, MPProduct product)
+    {
+        mParticleInstance.LogProductEvent (productEvent, product);
+    }
+
+    /// <summary>
     /// Logs an e-commerce transaction with an MPProduct.
     /// <seealso cref="MPProduct"/>
     /// </summary>
@@ -465,7 +513,7 @@ public class MParticle : MonoBehaviour, IMParticleSDK
         mParticleInstance.EnablePushNotifications (senderId, pushNotificationTypes);
     }
 
-    public void DisablePushNotifications()
+    public void DisablePushNotifications ()
     {
         mParticleInstance.DisablePushNotifications ();
     }
@@ -475,19 +523,18 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     //
 
     /// <summary>
-    /// Begins a new user session. It will end the current session, if one is active.
+    /// Increments the value of a session attribute by the provided amount. If the key does not
+    /// exist among the current session attributes, this method will add the key to the session attributes
+    /// and set the value to the provided amount. If the key already exists and the existing value is not 
+    /// a numeric data type, the operation will abort and the returned value will be zero.
     /// </summary>
-    public void BeginSession ()
+    /// <param name="key">The attribute key.</param>
+    /// <param name="incrementValue">The increment amount.</param>
+    /// <returns>The new value amount or zero, in case of failure.</returns>
+    public long IncrementSessionAttribute (string key, long incrementValue)
     {
-        mParticleInstance.BeginSession ();
-    }
-
-    /// <summary>
-    /// Ends the current session.
-    /// </summary>
-    public void EndSession ()
-    {
-        mParticleInstance.EndSession ();
+        long newValue = mParticleInstance.IncrementSessionAttribute (key, incrementValue);
+        return newValue;
     }
 
     /// <summary>
@@ -512,6 +559,29 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     //
     // User identity
     //
+
+    /// <summary>
+    /// Increments the value of a user attribute by the provided amount. If the key does not
+    /// exist among the current user attributes, this method will add the key to the user attributes
+    /// and set the value to the provided amount. If the key already exists and the existing value is not
+    /// a number, the operation will abort and the returned value will be zero.
+    /// </summary>
+    /// <param name="key">The attribute key.</param>
+    /// <param name="incrementValue">The increment amount.</param>
+    /// <returns>The new value amount or zero, in case of failure.</returns>
+    public long IncrementUserAttribute (string key, long incrementValue)
+    {
+        long newValue = mParticleInstance.IncrementUserAttribute (key, incrementValue);
+        return newValue;
+    }
+
+    /// <summary>
+    /// Logs a user out.
+    /// </summary>
+    public void Logout ()
+    {
+        mParticleInstance.Logout ();
+    }
 
     /// <summary>
     /// Sets a single user attribute. The property will be combined with any existing attributes.
@@ -542,6 +612,15 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     public void SetUserTag (string tag)
     {
         mParticleInstance.SetUserTag (tag);
+    }
+
+    /// <summary>
+    ///  Removes a single user attribute.
+    /// </summary>
+    /// <param name="tag">The user attribute key.</param>
+    public void RemoveUserAttribute (string key)
+    {
+        mParticleInstance.RemoveUserAttribute (key);
     }
 }
 #endif

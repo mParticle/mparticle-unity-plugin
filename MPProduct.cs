@@ -6,7 +6,7 @@ public class MPProduct : Dictionary<string, string> {
 	private const string affiliationKey = "TransactionAffiliation";
 	private const string unitpriceKey = "ProductUnitPrice";
 	private const string quantityKey = "ProductQuantity";
-	private const string revenueKey = "RevenueAmount";
+	private const string amountKey = "TotalAmount";
 	private const string taxKey = "TaxAmount";
 	private const string shippingKey = "ShippingAmount";
 	private const string categoryKey = "ProductCategory";
@@ -83,17 +83,17 @@ public class MPProduct : Dictionary<string, string> {
 		}
 	}
 
-	public double TotalRevenue
+	public double TotalAmount
 	{
 		get 
 		{
-			string totalRevenue = "0";
-			this.TryGetValue(revenueKey, out totalRevenue);
-			return double.Parse(totalRevenue);
+			string totalAmount = "0";
+			this.TryGetValue(amountKey, out totalAmount);
+			return double.Parse(totalAmount);
 		}
 		set
 		{
-			this[revenueKey] = value.ToString();
+			this[amountKey] = value.ToString();
 		}
 
 	}

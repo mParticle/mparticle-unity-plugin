@@ -81,6 +81,15 @@ extern "C" {
         [MParticle sharedInstance].sessionTimeout = sessionTimeout;
     }
 	
+    double _GetUploadInterval() {
+        double uploadInterval = [MParticle sharedInstance].uploadInterval;
+        return uploadInterval;
+    }
+
+    void _SetUploadInterval(double uploadInterval) {
+        [MParticle sharedInstance].uploadInterval = uploadInterval;
+    }
+
     //
     // Basic Tracking
     //
@@ -116,7 +125,7 @@ extern "C" {
         if (category != NULL) {
             event.category = stringWithCString(category);
         }
-        
+
         [[MParticle sharedInstance] logScreenEvent:event];
     }
     
@@ -162,6 +171,24 @@ extern "C" {
     //
     // eCommerce Transactions
     //
+
+    void _LogProductEvent(int productEvent, const char *productName, const char *affiliation, const char *sku, double unitPrice, int quantity, double totalAmount, double taxAmount, double shippingAmount, const char *transactionId, const char *category, const char *currency) {
+        MPProduct *product = [[MPProduct alloc] initWithName:stringWithCString(productName)
+                                                    category:stringWithCString(category)
+                                                    quantity:quantity
+                                               revenueAmount:totalAmount];
+
+        product.affiliation = stringWithCString(affiliation);
+        product.sku = stringWithCString(sku);
+        product.unitPrice = unitPrice;
+        product.taxAmount = taxAmount;
+        product.shippingAmount = shippingAmount;
+        product.transactionId = stringWithCString(transactionId);
+        product.currency = stringWithCString(currency);
+        
+        [[MParticle sharedInstance] logProductEvent:productEvent product:product];
+    }
+
     void _LogTransaction(const char *productName, const char *affiliation, const char *sku, double unitPrice, int quantity, double revenueAmount, double taxAmount, double shippingAmount, const char *transactionId, const char *category, const char *currency) {
         MPProduct *product = [[MPProduct alloc] initWithName:stringWithCString(productName)
                                                     category:stringWithCString(category)
@@ -218,25 +245,21 @@ extern "C" {
     }
 
     //
-    // Push Notifications
-    //
-    void _RegisterForPushNotificationWithTypes(unsigned int pushNotificationTypes) {
-    }
-
-    void _UnregisterForPushNotifications() {
-    }
-    
-    //
     // Session management
     //
-    void _BeginSession() {
-        [[MParticle sharedInstance] beginSession];
+
+    long _IncrementSessionAttribute(const char *key, long incrementValue) {
+        NSString *keyString = stringWithCString(key);
+
+        NSNumber *newValue = [[MParticle sharedInstance] incrementSessionAttribute:keyString byValue:@(incrementValue)];
+
+        if (!newValue) {
+            return 0;
+        }
+
+        return [newValue integerValue];
     }
-    
-    void _EndSession() {
-        [[MParticle sharedInstance] endSession];
-    }
-    
+
     void _SetSessionAttribute(const char *key, const char *value) {
         NSString *keyString = stringWithCString(key);
         NSString *valueString = stringWithCString(value);
@@ -252,6 +275,22 @@ extern "C" {
     //
     // User identity
     //
+    long _IncrementUserAttribute(const char *key, long incrementValue) {
+        NSString *keyString = stringWithCString(key);
+
+        NSNumber *newValue = [[MParticle sharedInstance] incrementUserAttribute:keyString byValue:@(incrementValue)];
+
+        if (!newValue) {
+            return 0;
+        }
+
+        return [newValue integerValue];
+    }
+
+    void _Logout() {
+        [[MParticle sharedInstance] logout];
+    }
+
     void _SetUserAttribute(const char *key, const char *value) {
         NSString *keyString = stringWithCString(key);
         NSString *valueString = stringWithCString(value);
@@ -271,6 +310,12 @@ extern "C" {
         NSString *tagString = stringWithCString(tag);
         
         [[MParticle sharedInstance] setUserTag:tagString];
+    }
+
+    void _RemoveUserAttribute (const char *key) {
+        NSString *keyString = stringWithCString(key);
+
+        [[MParticle sharedInstance] removeUserAttribute:keyString];
     }
 
 #ifdef __cplusplus

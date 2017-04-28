@@ -1,10 +1,8 @@
 //
 //  MPProduct.h
 //
-//  Copyright 2014. mParticle, Inc. All Rights Reserved.
+//  Copyright 2014-2015. mParticle, Inc. All Rights Reserved.
 //
-
-#import <Foundation/Foundation.h>
 
 // MPProduct
 extern NSString *const kMPProductName;
@@ -24,7 +22,7 @@ extern NSString *const kMPProductCurrency;
  Since this class extends NSMutableDictionary, other key/value pairs can be specified, in addition to the
  ones listed as class properties.
  */
-@interface MPProduct : NSObject
+@interface MPProduct : NSObject <NSCopying, NSCoding>
 
 /**
  An entity with which the transaction should be affiliated (e.g. a particular store). If nil, mParticle will use an empty string
@@ -56,10 +54,7 @@ extern NSString *const kMPProductCurrency;
  */
 @property (nonatomic, strong) NSString *transactionId;
 
-/**
- The total revenue of a transaction, including tax and shipping. If free or non-applicable use 0. Default value is zero
- */
-@property (nonatomic, readwrite) double revenueAmount;
+@property (nonatomic, readwrite) double revenueAmount __attribute__((deprecated("use the totalAmount property instead")));
 
 /**
  The total cost of shipping for a transaction. If free or non-applicable use 0. Default value is zero
@@ -72,6 +67,11 @@ extern NSString *const kMPProductCurrency;
 @property (nonatomic, readwrite) double taxAmount;
 
 /**
+ The total value of a transaction, including tax and shipping. If free or non-applicable use 0. Default value is zero
+ */
+@property (nonatomic, readwrite) double totalAmount;
+
+/**
  The price of a product. If free or non-applicable use 0. Default value is zero
  */
 @property (nonatomic, readwrite) double unitPrice;
@@ -81,18 +81,31 @@ extern NSString *const kMPProductCurrency;
  */
 @property (nonatomic, readwrite) NSInteger quantity;
 
+- (instancetype)initWithName:(NSString *)name category:(NSString *)category quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount __attribute__((deprecated("use initWithName:category:quantity:totalAmount: instead")));
+
 /**
  Designated initialiser.
  @param name The name of the product
  @param category A category to which the product belongs
  @param quantity The quantity of a product. If non-applicable use 0
- @param revenueAmount The total revenue of a transaction, including tax and shipping. If free or non-applicable use 0
+ @param totalAmount The total amount of a transaction, including tax and shipping. If free or non-applicable use 0
+ @returns An instance of MPProduct, or nil if it could not be created
  */
-- (instancetype)initWithName:(NSString *)name category:(NSString *)category quantity:(NSInteger)quantity revenueAmount:(double)revenueAmount;
+- (instancetype)initWithName:(NSString *)name category:(NSString *)category quantity:(NSInteger)quantity totalAmount:(double)totalAmount __attribute__((objc_designated_initializer));
+
+/**
+ Returns an array with all keys in the MPProduct dictionary
+ @returns An array with all dictionary keys
+ */
+- (NSArray *)allKeys;
+
+/**
+ Number of entries in the MPProduct dictionary
+ @returns The number of entries in the dictionary
+ */
+- (NSUInteger)count;
 
 - (id)objectForKeyedSubscript:(NSString *const)key;
 - (void)setObject:(id)obj forKeyedSubscript:(NSString *)key;
-- (NSArray *)allKeys;
-- (NSUInteger)count;
 
 @end

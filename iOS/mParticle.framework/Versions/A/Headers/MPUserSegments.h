@@ -1,10 +1,8 @@
 //
 //  MPUserSegments.h
 //
-//  Copyright 2014. mParticle, Inc. All Rights Reserved.
+//  Copyright 2014-2015. mParticle, Inc. All Rights Reserved.
 //
-
-#import <Foundation/Foundation.h>
 
 /**
  This class is returned as response from a user segments call. It contains segment ids, expiration, and a flag indicating whether it is expired.
