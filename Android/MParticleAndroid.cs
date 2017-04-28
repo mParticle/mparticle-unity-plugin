@@ -1,3 +1,4 @@
+#if UNITY_ANDROID
 using UnityEngine;
 using System;
 using System.Collections.Generic;
@@ -5,8 +6,10 @@ using System.Collections.Generic;
 public class MParticleAndroid : IMParticleSDK
 {
 	private AndroidJavaObject mp;
-
+	
+	AndroidJavaClass identityTypeClass = new AndroidJavaClass("com.mparticle.MParticle$IdentityType");
 	AndroidJavaClass eventTypeClass = new AndroidJavaClass("com.mparticle.MParticle$EventType");
+	AndroidJavaClass environmentClass = new AndroidJavaClass("com.mparticle.MParticle$Environment");
 
 	public MParticleAndroid()
 	{
@@ -85,38 +88,48 @@ public class MParticleAndroid : IMParticleSDK
 		);
 	}
 
-	public bool GetDebugMode()
+	public void SetDebugMode(bool debugMode)
 	{
-		return mp.Call<bool>(
-			"getDebugMode"
+		mp.Call(
+			"setDebugMode",
+			ConvertToJavaBoolean(debugMode)
 			);
 	}
 
-	public void SetDebugMode(bool debugMode)
-	{
-		//todo
+	public MParticle.MPEnvironment GetEnvironment(){
+		return ConvertToCSharpEnvironment(mp.Call<AndroidJavaObject>(
+			"getOptOut"
+			));
 	}
 
-	public bool GetSandboxMode()
+	public void SetEnvironment(MParticle.MPEnvironment environment)
 	{
-		//todo
-		return false;
+		mp.Call(
+			"setEnvironment", 
+			new object[] {ConvertToMpEnvironment(environment)}
+		);
 	}
-
-	public void SetSandboxMode(bool sandboxMode)
-	{
-		//todo
-	}
-
+	
 	public bool GetOptOut()
 	{
-		return mp.Call<bool>(
+		return ConvertToCSharpBoolean(mp.Call<AndroidJavaObject>(
 			"getOptOut"
-		);
+		));
+	}
+
+	public void SetOptOut(bool optOut)
+	{
+		mp.Call(
+			"setOptOut",
+			ConvertToJavaBoolean(optOut)
+			);
 	}
 
 	public void SetSessionTimeout(double timeout){
-		//todo
+		mp.Call(
+			"setSessionTimeout",
+			(int)timeout
+			);
 	}
 
 	public double GetSessionTimeout()
@@ -128,9 +141,9 @@ public class MParticleAndroid : IMParticleSDK
 
 	public bool IsAutoTrackingEnabled()
 	{
-		return mp.Call<bool>(
+		return ConvertToCSharpBoolean(mp.Call<AndroidJavaObject>(
 			"isAutoTrackingEnabled"
-		);
+		));
 	}
 
 	public void LeaveBreadcrumb(string breadcrumb, Dictionary<string,string> eventData)
@@ -159,22 +172,34 @@ public class MParticleAndroid : IMParticleSDK
 
 	public void SetSessionAttribute(string key, string value)
 	{
-		//todo
+		mp.Call(
+			"setSessionAttribute", 
+			new object[] {key, value}
+		);
 	}
 
 	public void SetUserAttribute(string key, string value)
 	{
-		//todo
+		mp.Call(
+			"setUserAttribute", 
+			new object[] {key, value}
+		);
 	}
 
 	public void SetUserIdentity(string id, MParticle.UserIdentity type)
 	{
-		//todo
+		mp.Call(
+			"setUserIdentity", 
+			new object[] {id, ConvertToMpUserIdentity(type)}
+		);
 	}
 
 	public void SetUserTag(string tag)
 	{
-		//todo
+		mp.Call(
+			"setUserTag", 
+			tag
+		);
 	}
 
 	public void LogEvent (string name, MParticle.EventType eventType)
@@ -209,7 +234,7 @@ public class MParticleAndroid : IMParticleSDK
 		);
 	}
 
-	public void LogEvent (string name, MParticle.EventType eventType, Dictionary<string, string> eventData, double eventLength, string category)
+	public void LogEvent (string name, MParticle.EventType eventType, Dictionary<string, string> eventData, long eventLength, string category)
 	{
 		mp.Call(
 			"logEvent", 
@@ -217,12 +242,24 @@ public class MParticleAndroid : IMParticleSDK
 		);
 	}
 
-	public void LogException(Exception exception)
+	public void LogException(string condition, string stacktrace)
 	{
 		mp.Call (
 			"logException", 
-			ConvertToJavaException (exception)
+			new AndroidJavaObject (
+			"com.mparticle.MPUnityException", 
+			condition,
+			stacktrace
+			)
 		);
+	}
+
+	public void LogException(AndroidJavaObject exception)
+	{
+		mp.Call (
+			"logException", 
+			exception
+			);
 	}
 
 	public void LogException(Exception exception, Dictionary<string, string> eventData)
@@ -260,8 +297,9 @@ public class MParticleAndroid : IMParticleSDK
 
 	public void LogScreen(string screenName)
 	{
-		mp.Call ("logScreen", 
-		         new object[] {screenName}
+		mp.Call (
+			"logScreen", 
+		    new object[] {screenName}
 		);
 	}
 
@@ -280,16 +318,19 @@ public class MParticleAndroid : IMParticleSDK
 		productMap.Call ("putAll", ConvertDictToMap (product));
 		mp.Call ("logTransaction", productMap);
 	}
-
+	
+	//Utility methods
 	private AndroidJavaObject ConvertDictToMap(Dictionary<string, string> data)
 	{
 		AndroidJavaObject map = new AndroidJavaObject("java.util.HashMap");
-		foreach (KeyValuePair<string, string> entry in data) 
-		{
-			map.Call<string>(
-				"put", 
-				new string[]{entry.Key, entry.Value}
-			);
+		if (data != null){
+			foreach (KeyValuePair<string, string> entry in data) 
+			{
+				map.Call<string>(
+					"put", 
+					new string[]{entry.Key, entry.Value}
+				);
+			}
 		}
 		return map;
 	}
@@ -299,15 +340,40 @@ public class MParticleAndroid : IMParticleSDK
 		return eventTypeClass.CallStatic<AndroidJavaObject> ("valueOf", eventType.ToString());
 	}
 
+	private AndroidJavaObject ConvertToMpUserIdentity(MParticle.UserIdentity userIdentity)
+	{
+		return identityTypeClass.CallStatic<AndroidJavaObject> ("valueOf", userIdentity.ToString());
+	}
+
+	private AndroidJavaObject ConvertToMpEnvironment(MParticle.MPEnvironment environment)
+	{
+		return environmentClass.CallStatic<AndroidJavaObject> ("valueOf", environment.ToString());
+	}
+
 	private AndroidJavaObject ConvertToJavaException(Exception e)
 	{
 		if (e != null) 
 		{
 		    return new AndroidJavaObject (
-											"java.lang.Exception", 
+											"com.mparticle.MPUnityException", 
+											e.Message,
 			                            	StackTraceUtility.ExtractStringFromException (e)
 			                             );
 		}
 		return null;
 	}
+
+	private AndroidJavaObject ConvertToJavaBoolean(bool value){
+		return new AndroidJavaObject("java.lang.Boolean",value.ToString());
+	}
+
+	private bool ConvertToCSharpBoolean(AndroidJavaObject value){
+		return Boolean.Parse(value.Call<string>("toString"));
+	}
+
+	private MParticle.MPEnvironment ConvertToCSharpEnvironment(AndroidJavaObject value){
+		return (MParticle.MPEnvironment)Enum.Parse(typeof(MParticle.MPEnvironment),value.Call<string>("name"));
+	}
 }
+
+#endif

@@ -8,13 +8,12 @@
 #ifndef mParticle_mParticleUnity_h
 #define mParticle_mParticleUnity_h
 
-#import "mParticle.h"
+// Properties
+Boolean _ConsoleLogging();
+void _SetConsoleLogging(Boolean consoleLogging);
 
-Boolean _GetDebugMode();
-void _SetDebugMode(Boolean debugMode);
-
-Boolean _GetSandboxMode();
-void _SetSandboxMode(Boolean sandboxMode);
+Boolean _GetOptOut();
+void _SetOptOut(Boolean optOut);
 
 double _GetSessionTimeout();
 void _SetSessionTimeout(double sessionTimeout);
@@ -27,7 +26,7 @@ void _LogScreen(const char *screenName, const char *eventInfoJSON);
 // Error, Exception, and Crash Handling
 void _BeginUncaughtExceptionLogging();
 
-void _EndUncaughtExceptionLoggin();
+void _EndUncaughtExceptionLogging();
 
 void _LeaveBreadcrumb(const char *breadcrumbName, const char *eventInfoJSON);
 
@@ -45,8 +44,13 @@ void _BeginLocationTracking(double accuracy, double distanceFilter);
 
 void _EndLocationTracking();
 
+// Network Performance Measurement
+void _LogNetworkPerformance(const char *url, long startTime, const char *method, long length, long bytesSent, long bytesReceived);
+
 // Push Notifications
 void _RegisterForPushNotificationWithTypes(unsigned int pushNotificationTypes);
+
+void _UnregisterForPushNotifications();
 
 // Session management
 void _BeginSession();

@@ -1,24 +1,31 @@
+#if UNITY_IPHONE
+
 using UnityEngine;
-using System.Collections;
+using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 
-public class MParticleiOS : InterfaceMParticleSDK {
+public class MParticleiOS : IMParticleSDK {
     /*
      Interface to native implementation 
      */
+
+    // Properties
     [DllImport ("__Internal")]
-    private static extern bool _GetDebugMode ();
-    
+    private static extern int _ConsoleLogging ();
+
     [DllImport ("__Internal")]
-    private static extern void _SetDebugMode (bool debugMode);
-    
+    private static extern void _SetConsoleLogging (int consoleLogging);
+
     [DllImport ("__Internal")]
-    private static extern bool _GetSandboxMode ();
-    
+    private static extern int _GetEnvironment();
+
     [DllImport ("__Internal")]
-    private static extern void _SetSandboxMode (bool sandboxMode);
-    
+    private static extern bool _GetOptOut ();
+
+    [DllImport ("__Internal")]
+    private static extern void _SetOptOut (bool optOut);
+
     [DllImport ("__Internal")]
     private static extern double _GetSessionTimeout ();
     
@@ -37,7 +44,7 @@ public class MParticleiOS : InterfaceMParticleSDK {
     private static extern void _BeginUncaughtExceptionLogging ();
 
     [DllImport ("__Internal")]
-    private static extern void _EndUncaughtExceptionLoggin ();
+    private static extern void _EndUncaughtExceptionLogging ();
 
     [DllImport ("__Internal")]
     private static extern void _LeaveBreadcrumb (string breadcrumbName, string eventInfoJSON);
@@ -62,9 +69,16 @@ public class MParticleiOS : InterfaceMParticleSDK {
     [DllImport ("__Internal")]
     private static extern void _EndLocationTracking ();
     
+    // Network Performance Measurement
+    [DllImport ("__Internal")]
+    private static extern void _LogNetworkPerformance (string url, long startTime, string method, long length, long bytesSent, long bytesReceived);
+    
     // Push Notifications
     [DllImport ("__Internal")]
     private static extern void _RegisterForPushNotificationWithTypes (uint pushNotificationTypes);
+
+    [DllImport ("__Internal")]
+    private static extern void _UnregisterForPushNotifications ();
     
     // Session management
     [DllImport ("__Internal")]
@@ -94,14 +108,16 @@ public class MParticleiOS : InterfaceMParticleSDK {
      */
     private static string SerializeDictionary (Dictionary<string, string> dictionary)
     {
+        if (dictionary == null)
+        {
+            return null;
+        }
+
         string serializedString = "{";
 
         foreach (KeyValuePair<string, string> entry in dictionary)
         {
-            string key = WWW.EscapeURL (entry.Key);
-            string val = WWW.EscapeURL (entry.Value);
-
-            serializedString += key + ":" + val + ",";
+            serializedString += "\"" + entry.Key + "\":\"" + entry.Value + "\",";
         }
 
         if (serializedString.Length > 1)
@@ -119,47 +135,57 @@ public class MParticleiOS : InterfaceMParticleSDK {
      */
     
     // Properties
-    bool GetDebugMode ()
+    public bool ConsoleLogging ()
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
             return false;
         }
 
-        return _GetDebugMode ();
+        return _ConsoleLogging ();
     }
 
-    void SetDebugMode (bool debugMode)
+    public void SetConsoleLogging (bool consoleLogging)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
             return;
         }
 
-        _SetDebugMode (debugMode);
+        _SetConsoleLogging (consoleLogging);        
     }
 
-    bool GetSandboxMode ()
+    public MParticle.MPEnvironment GetEnvironment ()
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return MParticle.MPEnvironment.Development;
+        }
+
+		return (MParticle.MPEnvironment) Enum.Parse(typeof(MParticle.MPEnvironment),_GetEnvironment ().ToString());
+    }
+
+    public bool GetOptOut ()
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
             return false;
         }
-        
-        return _GetSandboxMode ();
+
+        return _GetOptOut ();
     }
 
-    void SetSandboxMode (bool sandboxMode)
+    public void SetOptOut (bool optOut)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
             return;
         }
-        
-        _SetSandboxMode (sandboxMode);
+
+        _SetOptOut (optOut);        
     }
 
-    double GetSessionTimeout ()
+    public double GetSessionTimeout ()
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
@@ -169,7 +195,7 @@ public class MParticleiOS : InterfaceMParticleSDK {
         return _GetSessionTimeout ();
     }
 
-    void SetSessionTimeout (double sessionTimeout)
+    public void SetSessionTimeout (double sessionTimeout)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
@@ -180,7 +206,7 @@ public class MParticleiOS : InterfaceMParticleSDK {
     }
 
     // Basic Tracking
-    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, double eventLength, string category)
+    public void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long eventLength, string category)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
@@ -189,7 +215,7 @@ public class MParticleiOS : InterfaceMParticleSDK {
         
         string eventInfoJSON = SerializeDictionary (eventInfo);
 
-        _LogEvent (eventName, eventType, eventInfoJSON, eventLength, category);
+        _LogEvent (eventName, (int)eventType, eventInfoJSON, (double)eventLength, category);
     }
 
     public void LogScreen (string screenName, Dictionary<string, string> eventInfo)
@@ -215,14 +241,14 @@ public class MParticleiOS : InterfaceMParticleSDK {
         _BeginUncaughtExceptionLogging ();
     }
 
-    public void EndUncaughtExceptionLoggin ()
+    public void EndUncaughtExceptionLogging ()
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
             return;
         }
 
-        _EndUncaughtExceptionLoggin ();
+        _EndUncaughtExceptionLogging ();
     }
 
     public void LeaveBreadcrumb (string breadcrumbName, Dictionary<string, string> eventInfo)
@@ -249,6 +275,16 @@ public class MParticleiOS : InterfaceMParticleSDK {
         _LogError (message, eventInfoJSON);
     }
 
+	public void LogException (string condition, string stacktrace)
+	{
+		if (Application.platform == RuntimePlatform.OSXEditor)
+		{
+			return;
+		}
+		
+		_LogException (condition, condition, stacktrace);
+	}
+
     public void LogException (System.Exception exception, Dictionary<string, string> eventInfo, string message)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
@@ -260,7 +296,7 @@ public class MParticleiOS : InterfaceMParticleSDK {
     }
 
     // eCommerce Transactions
-    void LogTransaction (MPProduct product)
+    public void LogTransaction (MPProduct product)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
@@ -280,7 +316,7 @@ public class MParticleiOS : InterfaceMParticleSDK {
                          product.CurrencyCode);
     }
 
-    public void LogLTVIncrease (double increaseAmount, string eventName, Dictionary<string, string> eventInfo)
+    public void LogLTVIncrease (decimal increaseAmount, string eventName, Dictionary<string, string> eventInfo)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
@@ -289,18 +325,18 @@ public class MParticleiOS : InterfaceMParticleSDK {
 
         string eventInfoJSON = SerializeDictionary (eventInfo);
 
-        _LogLTVIncrease (increaseAmount, eventName, eventInfoJSON);
+        _LogLTVIncrease ((double) increaseAmount, eventName, eventInfoJSON);
     }
 
     // Location
-    void BeginLocationTracking (MParticle.LocationRange locationRange, long minTime, double minDistance)
+    public void BeginLocationTracking (MParticle.LocationRange locationRange, long minTime, double minDistance)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
             return;
         }
 
-        _BeginLocationTracking (locationRange, minDistance);
+        _BeginLocationTracking ((double)locationRange, minDistance);
     }
     
     public void EndLocationTracking ()
@@ -313,15 +349,40 @@ public class MParticleiOS : InterfaceMParticleSDK {
         _EndLocationTracking ();
     }
     
-    // Push Notifications
-    public void RegisterForPushNotificationWithTypes (string senderId, uint pushNotificationTypes)
+    // Network Performance Measurement
+    public void ExcludeUrlFromNetworkPerformanceMeasurement (string url)
+    {
+    }
+
+    public void LogNetworkPerformance (string url, long startTime, string method, long length, long bytesSent, long bytesReceived)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
             return;
         }
 
-        _RegisterForPushNotificationWithTypes (pushNotificationTypes);
+        _LogNetworkPerformance (url, startTime, method, length, bytesSent, bytesReceived);
+    }
+
+    // Push Notifications
+    public void EnablePushNotifications (string androidSenderId, uint iOSPushNotificationTypes)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+
+        _RegisterForPushNotificationWithTypes (iOSPushNotificationTypes);
+    }
+
+    public void DisablePushNotifications ()
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+
+        _UnregisterForPushNotifications ();
     }
     
     // Session management
@@ -383,7 +444,7 @@ public class MParticleiOS : InterfaceMParticleSDK {
             return;
         }
 
-        _SetUserIdentity (identity, identityType);
+        _SetUserIdentity (identity, (uint)identityType);
     }
     
     public void SetUserTag (string tag)
@@ -396,3 +457,5 @@ public class MParticleiOS : InterfaceMParticleSDK {
         _SetUserTag (tag);
     }
 }
+
+#endif

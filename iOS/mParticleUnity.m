@@ -7,31 +7,14 @@
 
 #import "mParticleUnity.h"
 #import "MParticleUnityException.h"
+#import <mParticle/MPEnums.h>
+#import <mParticle/mParticle.h>
+#import <mParticle/MPEvent.h>
+#import <mParticle/MPProduct.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
-//    NSDictionary *dictionaryWithJSON(const char *json) {
-//        if (json == NULL) {
-//            return nil;
-//        }
-//        
-//        NSString *jsonString = [[NSString alloc] initWithCString:json encoding:NSUTF8StringEncoding];
-//        
-//        NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
-//        
-//        NSError *error = nil;
-//        NSDictionary *dictionary = [NSJSONSerialization JSONObjectWithData:jsonData
-//                                                                   options:0
-//                                                                     error:&error];
-//        
-//        if (error) {
-//            dictionary = nil;
-//        }
-//        
-//        return dictionary;
-//    }
     
     //
     // Private functions
@@ -41,15 +24,12 @@ extern "C" {
             return nil;
         }
         
-        size_t jsonLength = strlen(json);
-        CFDataRef jsonData = CFDataCreate(kCFAllocatorDefault, (const UInt8 *)&json, jsonLength);
-        
+        NSString *jsonString = [[NSString alloc] initWithCString:json encoding:NSUTF8StringEncoding];
+
         NSError *error = nil;
-        NSDictionary *dictionary = [NSJSONSerialization JSONObjectWithData:(__bridge NSData *)jsonData
+        NSDictionary *dictionary = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding]
                                                                    options:0
                                                                      error:&error];
-        
-        CFRelease(jsonData);
 
         if (error) {
             dictionary = nil;
@@ -70,24 +50,28 @@ extern "C" {
     //
     // mParticle SDK Unity functions
     //
-    Boolean _GetDebugMode() {
-        Boolean debugMode = [MParticle sharedInstance].debugMode;
-        return debugMode;
-    }
-    
-    void _SetDebugMode(Boolean debugMode) {
-        [MParticle sharedInstance].debugMode = debugMode;
+
+    //
+    // Properties
+    //
+    Boolean _ConsoleLogging() {
+        Boolean consoleLogging = [MParticle sharedInstance].consoleLogging;
+        return consoleLogging;
     }
 
-    Boolean _GetSandboxMode() {
-        Boolean sandboxMode = [MParticle sharedInstance].sandboxed;
-        return sandboxMode;
+    void _SetConsoleLogging(Boolean consoleLogging) {
+        [MParticle sharedInstance].consoleLogging = consoleLogging;
     }
-    
-    void _SetSandboxMode(Boolean sandboxMode) {
-        [MParticle sharedInstance].sandboxed = sandboxMode;
+
+    Boolean _GetOptOut() {
+        Boolean optOut = [MParticle sharedInstance].optOut;
+        return optOut;
     }
-    
+
+    void _SetOptOut(Boolean optOut) {
+        [MParticle sharedInstance].optOut = optOut;
+    }
+
     double _GetSessionTimeout() {
         double sessionTimeout = [MParticle sharedInstance].sessionTimeout;
         return sessionTimeout;
@@ -101,23 +85,17 @@ extern "C" {
     // Basic Tracking
     //
     void _LogEvent(const char *eventName, int eventType, const char *eventInfoJSON, double eventLength, const char *category) {
-        NSString *eventNameString = stringWithCString(eventName);
-        NSString *categoryString = stringWithCString(category);
-        NSDictionary *eventInfo = dictionaryWithJSON(eventInfoJSON);
-        
-        [[MParticle sharedInstance] logEvent:eventNameString
-                                   eventType:eventType
-                                   eventInfo:eventInfo
-                                 eventLength:eventLength
-                                    category:categoryString];
+        MPEvent *event = [[MPEvent alloc] initWithName:stringWithCString(eventName) type:eventType];
+        event.info = dictionaryWithJSON(eventInfoJSON);
+        event.duration = @(eventLength);
+        event.category = stringWithCString(category);
+        [[MParticle sharedInstance] logEvent:event];
     }
     
     void _LogScreen(const char *screenName, const char *eventInfoJSON) {
-        NSString *screenNameString = stringWithCString(screenName);
-        NSDictionary *eventInfo = dictionaryWithJSON(eventInfoJSON);
-
-        [[MParticle sharedInstance] logScreen:screenNameString
-                                    eventInfo:eventInfo];
+        MPEvent *event = [[MPEvent alloc] initWithName:stringWithCString(screenName) type:MPEventTypeNavigation];
+        event.info = dictionaryWithJSON(eventInfoJSON);
+        [[MParticle sharedInstance] logScreenEvent:event];
     }
     
     //
@@ -127,8 +105,8 @@ extern "C" {
         [[MParticle sharedInstance] beginUncaughtExceptionLogging];
     }
     
-    void _EndUncaughtExceptionLoggin() {
-        [[ MParticle sharedInstance] endUncaughtExceptionLogging];
+    void _EndUncaughtExceptionLogging() {
+        [[MParticle sharedInstance] endUncaughtExceptionLogging];
     }
     
     void _LeaveBreadcrumb(const char *breadcrumbName, const char *eventInfoJSON) {
@@ -163,24 +141,20 @@ extern "C" {
     // eCommerce Transactions
     //
     void _LogTransaction(const char *productName, const char *affiliation, const char *sku, double unitPrice, int quantity, double revenueAmount, double taxAmount, double shippingAmount, const char *transactionId, const char *category, const char *currency) {
-        NSString *productNameString = stringWithCString(productName);
-        NSString *affiliationString = stringWithCString(affiliation);
-        NSString *skuString = stringWithCString(sku);
-        NSString *transactionIdString = stringWithCString(transactionId);
-        NSString *categoryString = stringWithCString(category);
-        NSString *currencyString = stringWithCString(currency);
+        MPProduct *product = [[MPProduct alloc] initWithName:stringWithCString(productName)
+                                                    category:stringWithCString(category)
+                                                    quantity:quantity
+                                               revenueAmount:revenueAmount];
+
+        product.affiliation = stringWithCString(affiliation);
+        product.sku = stringWithCString(sku);
+        product.unitPrice = unitPrice;
+        product.taxAmount = taxAmount;
+        product.shippingAmount = shippingAmount;
+        product.transactionId = stringWithCString(transactionId);
+        product.currency = stringWithCString(currency);
         
-        [[MParticle sharedInstance] logTransaction:productNameString
-                                       affiliation:affiliationString
-                                               sku:skuString
-                                         unitPrice:unitPrice
-                                          quantity:quantity
-                                     revenueAmount:revenueAmount
-                                         taxAmount:taxAmount
-                                    shippingAmount:shippingAmount
-                                     transactionId:transactionIdString
-                                   productCategory:categoryString
-                                      currencyCode:currencyString];
+        [[MParticle sharedInstance] logTransaction:product];
     }
     
     void _LogLTVIncrease(double increaseAmount, const char *eventName, const char *eventInfoJSON) {
@@ -205,10 +179,29 @@ extern "C" {
     }
     
     //
+    // Network Performance Measurement
+    //
+    void _LogNetworkPerformance(const char *url, long startTime, const char *method, long length, long bytesSent, long bytesReceived) {
+        NSString *urlString = stringWithCString(url);
+        NSString *httpMethod = stringWithCString(method);
+        NSTimeInterval startTimeInSeconds = startTime * 1000.0;
+        NSTimeInterval duration = length * 1000.0;
+
+        [[MParticle sharedInstance] logNetworkPerformance:urlString
+                                               httpMethod:httpMethod
+                                                startTime:startTimeInSeconds
+                                                 duration:duration
+                                                bytesSent:bytesSent
+                                            bytesReceived:bytesReceived];
+    }
+
+    //
     // Push Notifications
     //
     void _RegisterForPushNotificationWithTypes(unsigned int pushNotificationTypes) {
-        [[MParticle sharedInstance] registerForPushNotificationWithTypes:pushNotificationTypes];
+    }
+
+    void _UnregisterForPushNotifications() {
     }
     
     //
