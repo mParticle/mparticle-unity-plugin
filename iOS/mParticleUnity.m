@@ -102,9 +102,21 @@ extern "C" {
         [[MParticle sharedInstance] logEvent:event];
     }
     
-    void _LogScreen(const char *screenName, const char *eventInfoJSON) {
+    void _LogScreen(const char *screenName, const char *eventInfoJSON, double startTime, double endTime, double duration, const char *category) {
         MPEvent *event = [[MPEvent alloc] initWithName:stringWithCString(screenName) type:MPEventTypeNavigation];
         event.info = dictionaryWithJSON(eventInfoJSON);
+
+        if (startTime > 0) {
+            event.startTime = [NSDate dateWithTimeIntervalSince1970:startTime];
+            event.endTime = [NSDate dateWithTimeIntervalSince1970:endTime];
+        }
+
+        event.duration = @(duration);
+
+        if (category != NULL) {
+            event.category = stringWithCString(category);
+        }
+        
         [[MParticle sharedInstance] logScreenEvent:event];
     }
     

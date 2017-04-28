@@ -16,7 +16,8 @@ public interface IMParticleSDK
     // Basic Tracking
     void LogEvent (MPEvent mpEvent);
     void LogEvent (string eventName, MParticle.EventType eventType, Dictionary<string, string> eventInfo, long startTime, long endTime, long duration, string category);
-    void LogScreen (string screenName, Dictionary<string, string> eventInfo);
+    void LogScreen (MPEvent mpEvent);
+    void LogScreen (string screenName, Dictionary<string, string> eventInfo, long startTime, long endTime, long duration, string category);
     // Error, Exception, and Crash Handling
     void BeginUncaughtExceptionLogging ();
     void EndUncaughtExceptionLogging ();
@@ -253,12 +254,13 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     }
 
     /// <summary>
-    /// Logs a screen.
+    /// Logs a screen event. Developers define all the characteristics of a screen event (name, attributes, etc) in an 
+    /// instance of MPEvent and pass that instance to this method to log its data to the mParticle SDK.
     /// </summary>
-    /// <param name="screenName">The name of the screen to be tracked (required not null)</param>
-    public void LogScreen (string screenName)
+    /// <param name="mpEvent">An instance of MPEvent</param>
+    public void LogScreen (MPEvent mpEvent)
     {
-        mParticleInstance.LogScreen (screenName, null);
+        mParticleInstance.LogScreen (mpEvent);
     }
 
     /// <summary>
@@ -268,7 +270,21 @@ public class MParticle : MonoBehaviour, IMParticleSDK
     /// <param name="eventInfo">A dictionary containing further information about the screen.</param>
     public void LogScreen (string screenName, Dictionary<string, string> eventInfo)
     {
-        mParticleInstance.LogScreen (screenName, eventInfo);
+        mParticleInstance.LogScreen (screenName, eventInfo, 0, 0, 0, null);
+    }
+
+    /// <summary>
+    /// Logs a screen.
+    /// </summary>
+    /// <param name="screenName">The name of the screen to be tracked (required not null)</param>
+    /// <param name="eventInfo">A dictionary containing further information about the screen.</param>
+    /// <param name="startTime">The time the screen event started, if not applicable, pass 0 (zero)</param>
+    /// <param name="endTime">The time the screen event ended, if not applicable, pass 0 (zero)</param>
+    /// <param name="duration">The duration of the screen event, if not applicable, pass 0 (zero)</param>
+    /// <param name="category">Category is a string with a developer/company defined category of the event. If not applicable, pass null.</param>
+    public void LogScreen (string screenName, Dictionary<string, string> eventInfo, long startTime, long endTime, long duration, string category)
+    {
+        mParticleInstance.LogScreen (screenName, eventInfo, startTime, endTime, duration, category);
     }
 
     //

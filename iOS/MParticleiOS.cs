@@ -37,7 +37,7 @@ public class MParticleiOS : IMParticleSDK {
     private static extern void _LogEvent (string eventName, int eventType, string eventInfoJSON, double startTime, double endTime, double duration, string category);
 
     [DllImport ("__Internal")]
-    private static extern void _LogScreen (string screenName, string eventInfoJSON);
+    private static extern void _LogScreen (string screenName, string eventInfoJSON, double startTime, double endTime, double duration, string category);
     
     // Error, Exception, and Crash Handling
     [DllImport ("__Internal")]
@@ -254,7 +254,27 @@ public class MParticleiOS : IMParticleSDK {
         _LogEvent (eventName, (int)eventType, eventInfoJSON, (double)startTime, (double)endTime, (double)duration, category);
     }
 
-    public void LogScreen (string screenName, Dictionary<string, string> eventInfo)
+    public void LogScreen (MPEvent mpEvent)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+            return;
+        }
+
+        string eventInfoJSON = SerializeDictionary (mpEvent.Info);
+
+        double startTime = 0;
+        double endTime = 0;
+        if (mpEvent.StartTime.CompareTo(epoch) > 0)
+        {
+            startTime = DateTimeToSeconds (mpEvent.StartTime);
+            endTime = DateTimeToSeconds (mpEvent.EndTime);
+        }
+
+        _LogScreen (mpEvent.Name, eventInfoJSON, startTime, endTime, (double)mpEvent.Duration, mpEvent.Category);
+    }
+
+    public void LogScreen (string screenName, Dictionary<string, string> eventInfo, long startTime, long endTime, long duration, string category)
     {
         if (Application.platform == RuntimePlatform.OSXEditor)
         {
@@ -263,7 +283,7 @@ public class MParticleiOS : IMParticleSDK {
         
         string eventInfoJSON = SerializeDictionary (eventInfo);
 
-        _LogScreen (screenName, eventInfoJSON);
+        _LogScreen (screenName, eventInfoJSON, (double)startTime, (double)endTime, (double)duration, category);
     }
     
     // Error, Exception, and Crash Handling

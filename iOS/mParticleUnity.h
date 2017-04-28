@@ -21,7 +21,7 @@ void _SetSessionTimeout(double sessionTimeout);
 // Basic Tracking
 void _LogEvent(const char *eventName, int eventType, const char *eventInfoJSON, double startTime, double endTime, double duration, const char *category);
 
-void _LogScreen(const char *screenName, const char *eventInfoJSON);
+void _LogScreen(const char *screenName, const char *eventInfoJSON, double startTime, double endTime, double duration, const char *category);
 
 // Error, Exception, and Crash Handling
 void _BeginUncaughtExceptionLogging();
