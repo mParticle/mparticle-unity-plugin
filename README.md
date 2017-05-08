@@ -126,7 +126,7 @@ MParticle.Instance.LogScreenEvent
 User identities allow you to associate specific identifiers with the current user: 
 
 ```cs
-MParticle.Instance.setUserIdentity("example@example.com", UserIdentity.Email);
+MParticle.Instance.SetUserIdentity("example@example.com", UserIdentity.Email);
 ```
 
 In addition to this, the underlying iOS and Android SDKs will automatically collect device IDs.
