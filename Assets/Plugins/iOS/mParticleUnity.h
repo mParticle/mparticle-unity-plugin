@@ -17,5 +17,6 @@ void _SetUserAttributeArray(const char *key, const char *values[], int length);
 void _SetUserIdentity(const char *identity, unsigned int identityType);
 void _SetUserTag(const char *tag);
 void _RemoveUserAttribute (const char *key);
+void _SetUploadInterval(int uploadInterval);
 
 #endif

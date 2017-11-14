@@ -51,6 +51,8 @@ public class MParticleiOS : IMParticleSDK
     [DllImport ("__Internal")]
     private static extern void _SetOptOut (bool optOut);
 
+    [DllImport ("__Internal")]
+    private static extern void _SetUploadInterval(int uploadInterval);
 
     /*
      Private variables
@@ -218,6 +220,15 @@ public class MParticleiOS : IMParticleSDK
         }
 
         _SetOptOut (optOut);        
+    }
+
+    public void SetUploadInterval(int uploadInterval)
+    {
+        if (Application.platform == RuntimePlatform.OSXEditor) {
+            return;
+        }
+
+        _SetUploadInterval(uploadInterval);
     }
 }
 

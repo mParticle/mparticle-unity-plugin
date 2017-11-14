@@ -22,6 +22,8 @@ Download and import the plugin package to get started:
 
 > Starting with Unity 5.3, post-process scripts are not run automatically. In those cases, the script will be run by `mParticleBuildPostprocessor.cs` instead.
 
+Ensure your Xcode project is in a folder called `iOS` and that the folder is in the root of your unity project folder. If you still have issues with your Xcode project, run the `PostprocessBuildPlayer_mParticle` ruby script directly.
+
 #### Manual Xcode configuration
 
 You can also configure Xcode manually by adding the required frameworks specified in the [Apple SDK's manual installation guide](https://github.com/mParticle/mparticle-apple-sdk/wiki/Manual-installation-instructions#manual-installation).
