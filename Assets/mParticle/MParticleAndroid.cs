@@ -237,6 +237,14 @@ namespace mParticle
 				new object[] { screenName, ConvertDictToMap (eventData) }
 			);
 		}
+			
+        public void SetUploadInterval(int uploadInterval)
+        {
+            mp.Call(
+                "setUploadInterval", 
+                new object[] { uploadInterval }
+            );
+        }
 
 		//Utility methods
 		private AndroidJavaObject ConvertDictToMap (Dictionary<string, string> data)

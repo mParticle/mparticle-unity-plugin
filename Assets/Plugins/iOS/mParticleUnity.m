@@ -151,6 +151,10 @@ extern "C" {
         int environment = [MParticle sharedInstance].environment;
         return environment;
     }
+    
+    void _SetUploadInterval(int uploadInterval) {
+        [[MParticle sharedInstance] setUploadInterval:uploadInterval];
+    }
 
 #ifdef __cplusplus
 }

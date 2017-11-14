@@ -220,6 +220,8 @@ namespace mParticle
         Environment GetEnvironment();
 
         void Initialize(string apiKey, string apiSecret);
+
+        void SetUploadInterval(int uploadInterval);
     }
 
     public sealed class MParticle : MonoBehaviour, IMParticleSDK
@@ -258,11 +260,12 @@ namespace mParticle
 
         /// <summary>
         /// Starts the mParticle SDK
-        /// </summary
+        /// </summary>
         public void Initialize(string apiKey, string apiSecret)
         {
             mParticleInstance.Initialize(apiKey, apiSecret);
         }
+
         /// <summary>
         /// Logs an event. The eventInfo is limited to 100 key value pairs.
         /// The eventName and strings in eventInfo cannot contain more than 255 characters.
@@ -396,6 +399,14 @@ namespace mParticle
             return mParticleInstance.GetEnvironment();
         }
 
+        /// <summary>
+        /// Set the upload interval period to control how frequently uploads occur.
+        /// </summary>
+        /// <param name="uploadInterval">The number of seconds between uploads</param>
+        public void SetUploadInterval(int uploadInterval)
+        {
+            mParticleInstance.SetUploadInterval(uploadInterval);
+        }
     }
 }
 #endif
