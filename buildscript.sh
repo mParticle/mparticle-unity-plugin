@@ -7,10 +7,9 @@ project_dir=${PWD}
     -exportPackage Assets/mParticle/MParticle.cs \
                    Assets/mParticle/MParticleAndroid.cs \
                    Assets/mParticle/MParticleiOS.cs \
-                   Assets/Plugins/Android/mParticle-core-4.12.0.aar \
+                   Assets/Plugins/Android/mparticle-android-core.aar \
                    Assets/Plugins/iOS/MParticleUnity.h \
                    Assets/Plugins/iOS/MParticleUnity.m \
-                   Assets/Plugins/iOS/libmParticle-Apple-SDK.a \
-                   Assets/Plugins/iOS/mParticle-Apple-SDK/* \
+                   Assets/Plugins/iOS/mParticle_Apple_SDK.framework \
                    Assets/Editor/PostprocessBuildPlayer_mParticle \
-    mParticle.unitypackage -batchmode -quit
+    mParticle.unitypackage -nographics -batchmode -quit
