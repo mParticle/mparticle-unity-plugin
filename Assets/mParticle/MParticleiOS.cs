@@ -10,7 +10,7 @@ public class MParticleiOS : IMParticleSDK
 {
 
     [DllImport ("__Internal")]
-    private static extern void _Initialize (string key, string secret);
+    private static extern void _Initialize (string key, string secret, int environmentType);
 
     [DllImport ("__Internal")]
     private static extern void _LogEvent (string eventName, int eventType, string eventInfoJSON);
@@ -89,12 +89,12 @@ public class MParticleiOS : IMParticleSDK
         return serializedString;
     }
 
-    public void Initialize (string key, string secret) {
+    public void Initialize (string key, string secret, mParticle.Environment environment = mParticle.Environment.AutoDetect) {
         if (Application.platform == RuntimePlatform.OSXEditor) {
             return;
         }
 
-        _Initialize (key, secret);
+        _Initialize (key, secret, (int)environment);
     }
 
     public void LogEvent (string eventName, mParticle.EventType eventType, Dictionary<string, string> eventInfo)

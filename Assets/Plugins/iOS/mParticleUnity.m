@@ -1,8 +1,8 @@
 #import "mParticleUnity.h"
-#import "MPEnums.h"
-#import "mParticle.h"
-#import "MPEvent.h"
-#import "MPProduct.h"
+#import <mParticle_Apple_SDK/MPEnums.h>
+#import <mParticle_Apple_SDK/mParticle.h>
+#import <mParticle_Apple_SDK/MPEvent.h>
+#import <mParticle_Apple_SDK/MPProduct.h>
 
 @interface MPUnityConvert : NSObject
 + (MPCommerceEvent *)MPCommerceEvent:(NSDictionary *)json;
@@ -51,10 +51,10 @@ extern "C" {
     // mParticle SDK Unity functions
     //
 
-    void _Initialize (const char *key, const char *secret) {
+    void _Initialize (const char *key, const char *secret, int environmentType) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            [[MParticle sharedInstance] startWithKey:stringWithCString(key) secret:stringWithCString(secret)];
+            [[MParticle sharedInstance] startWithKey:stringWithCString(key) secret:stringWithCString(secret) installationType:MPInstallationTypeAutodetect environment:environmentType];
         });
     }
 
