@@ -14,7 +14,9 @@ Download and import the plugin package to get started:
 
 ### iOS Setup
 
-`mParticle.unitypackage` contains the mParticle Apple SDK as a static library and the required headers which will be automatically imported into your project.
+`mParticle.unitypackage` contains the mParticle Apple SDK as a dynamic framework library and the required headers which will be automatically imported into your project.
+
+You may need to add the mParticle Apple SDK as an embedded library in your xcode project build settings (under General -> Embedded Binaries). You may also need to build the "Device SDK" project from Unity (under Player Settings -> Target Device) first and then switch to "Simulator SDK" if you wish to run on the simulator.
 
 #### Automated Xcode configuration
 
@@ -22,7 +24,7 @@ Download and import the plugin package to get started:
 
 > Starting with Unity 5.3, post-process scripts are not run automatically. In those cases, the script will be run by `mParticleBuildPostprocessor.cs` instead.
 
-Ensure your Xcode project is in a folder called `iOS` and that the folder is in the root of your unity project folder. If you still have issues with your Xcode project, run the `PostprocessBuildPlayer_mParticle` ruby script directly.
+Ensure your Xcode project is in a folder called `iOS` and that the folder is in the root of your unity project folder.
 
 #### Manual Xcode configuration
 

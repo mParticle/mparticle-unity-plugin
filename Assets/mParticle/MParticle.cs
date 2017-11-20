@@ -156,6 +156,13 @@ namespace mParticle
         Production
     };
 
+    public enum InstallType
+    {
+        AutoDetect = 0,
+        KnownInstall,
+        KnownUpgrade
+    }
+
     public enum ProductAction
     {
         AddToCart = 1,
@@ -219,7 +226,7 @@ namespace mParticle
 
         Environment GetEnvironment();
 
-        void Initialize(string apiKey, string apiSecret);
+        void Initialize(string apiKey, string apiSecret, Environment environment);
 
         void SetUploadInterval(int uploadInterval);
     }
@@ -261,9 +268,12 @@ namespace mParticle
         /// <summary>
         /// Starts the mParticle SDK
         /// </summary>
-        public void Initialize(string apiKey, string apiSecret)
+        /// <param name="apiKey">Your application's mParticle key retrieved from app.mparticle.com/apps</param>
+        /// <param name="apiSecret">Your application's mParticle secret retrieved from app.mparticle.com/apps</param>
+        /// <param name="environment">Force the SDK into either Production or Development mode.</param>
+        public void Initialize(string apiKey, string apiSecret, Environment environment = Environment.AutoDetect)
         {
-            mParticleInstance.Initialize(apiKey, apiSecret);
+            mParticleInstance.Initialize(apiKey, apiSecret, environment);
         }
 
         /// <summary>

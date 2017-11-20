@@ -10,6 +10,7 @@ namespace mParticle
 
 		AndroidJavaClass identityTypeClass = new AndroidJavaClass ("com.mparticle.MParticle$IdentityType");
 		AndroidJavaClass eventTypeClass = new AndroidJavaClass ("com.mparticle.MParticle$EventType");
+		AndroidJavaClass installTypeClass = new AndroidJavaClass("com.mparticle.MParticle$InstallType");
 		AndroidJavaClass environmentClass = new AndroidJavaClass ("com.mparticle.MParticle$Environment");
 		AndroidJavaClass integerClass = new AndroidJavaClass ("java.lang.Integer");
 		AndroidJavaClass doubleClass = new AndroidJavaClass ("java.lang.Double");
@@ -19,11 +20,11 @@ namespace mParticle
 
 		}
 
-		public void Initialize (string apiKey, string apiSecret)
+		public void Initialize (string apiKey, string apiSecret, Environment environment = Environment.AutoDetect)
 		{
 			AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"); 
 			new AndroidJavaClass ("com.mparticle.MParticle").CallStatic ("start", 
-				new object[] { jc.GetStatic<AndroidJavaObject>("currentActivity"), apiKey, apiSecret });
+				new object[] { jc.GetStatic<AndroidJavaObject>("currentActivity"), ConvertToMpInstallType(InstallType.AutoDetect), ConvertToMpEnvironment(environment), apiKey, apiSecret });
 			mp = new AndroidJavaClass ("com.mparticle.MParticle").
 				CallStatic<AndroidJavaObject> ("getInstance");
 		}
@@ -31,7 +32,7 @@ namespace mParticle
 		public Environment GetEnvironment ()
 		{
 			return ConvertToCSharpEnvironment (mp.Call<AndroidJavaObject> (
-				"getOptOut"
+				"getEnvironment"
 			));
 		}
 
@@ -274,6 +275,11 @@ namespace mParticle
 		private AndroidJavaObject ConvertToMpEnvironment (Environment environment)
 		{
 			return environmentClass.CallStatic<AndroidJavaObject> ("valueOf", environment.ToString ());
+		}
+
+		private AndroidJavaObject ConvertToMpInstallType(InstallType installType)
+		{
+			return installTypeClass.CallStatic<AndroidJavaObject>("valueOf", installType.ToString());
 		}
 
 		private string ConvertToMpProductAction (ProductAction action)
