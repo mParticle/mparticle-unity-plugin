@@ -7,7 +7,7 @@ project_dir=${PWD}
     -exportPackage Assets/mParticle/MParticle.cs \
                    Assets/mParticle/MParticleAndroid.cs \
                    Assets/mParticle/MParticleiOS.cs \
-                   Assets/Plugins/Android/mparticle-android-core.aar \
+                   Assets/Plugins/Android/mparticle-core.jar \
                    Assets/Plugins/iOS/MParticleUnity.h \
                    Assets/Plugins/iOS/MParticleUnity.m \
                    Assets/Plugins/iOS/mParticle_Apple_SDK.framework \
