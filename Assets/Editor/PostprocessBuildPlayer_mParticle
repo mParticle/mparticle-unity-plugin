@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'rubygems'
 
-gem "xcodeproj", "~> 1.4.1"
+gem "xcodeproj", "~> 1.5.4"
 
 require 'xcodeproj'
 require 'pathname'
