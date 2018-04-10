@@ -1,422 +1,665 @@
-#if UNITY_IPHONE || UNITY_ANDROID
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Linq;
+
+#if UNITY_ANDROID
+using mParticleAndroid;
+#endif
+#if UNITY_IOS
+using mParticleiOs;
+#endif
 
 namespace mParticle
 {
 
-    [Serializable]
-    public sealed class CommerceEvent
-    {
-        public TransactionAttributes TransactionAttributes;
-        public ProductAction ProductAction;
-        public PromotionAction PromotionAction;
-        public Product[] Products;
-        public Promotion[] Promotions;
-        public Impression[] Impressions;
-        public string ScreenName;
-        public string Currency;
-        public Dictionary<string, string> CustomAttributes;
-        public string CheckoutOptions;
-        public string ProductActionListName;
-        public string ProductActionListSource;
-        public int? CheckoutStep;
-        public bool? NonInteractive;
+	[Serializable]
+	public sealed class CommerceEvent
+	{
+		public TransactionAttributes TransactionAttributes;
+		public ProductAction ProductAction;
+		public PromotionAction PromotionAction;
+		public Product[] Products;
+		public Promotion[] Promotions;
+		public Impression[] Impressions;
+		public string ScreenName;
+		public string Currency;
+		public Dictionary<string, string> CustomAttributes;
+		public string CheckoutOptions;
+		public string ProductActionListName;
+		public string ProductActionListSource;
+		public int? CheckoutStep;
+		public bool? NonInteractive;
 
-        public CommerceEvent(ProductAction productAction, Product[] products, TransactionAttributes transactionAttributes)
-        {
-            this.ProductAction = productAction;
-            this.Products = products;
-            this.TransactionAttributes = transactionAttributes;
-        }
+		public CommerceEvent(ProductAction productAction, Product[] products, TransactionAttributes transactionAttributes = null)
+		{
+			this.ProductAction = productAction;
+			this.Products = products;
+			this.TransactionAttributes = transactionAttributes;
+		}
 
-        public CommerceEvent(PromotionAction newPromotionAction, Promotion[] newPromotions)
-        {
-            this.PromotionAction = newPromotionAction;
-            this.Promotions = newPromotions;
-        }
+		public CommerceEvent(PromotionAction newPromotionAction, Promotion[] newPromotions)
+		{
+			this.PromotionAction = newPromotionAction;
+			this.Promotions = newPromotions;
+		}
 
-        public CommerceEvent(Impression[] impressions)
-        {
-            this.Impressions = impressions;
-        }
-    }
+		public CommerceEvent(Impression[] impressions)
+		{
+			this.Impressions = impressions;
+		}
+	}
 
-    [Serializable]
-    public sealed class Product
-    {
+	[Serializable]
+	public sealed class MPEvent
+	{
+		public EventType EventType;
+		public string EventName;
+		public string Category;
+		public Dictionary<string, string> Info;
+		public Double? Duration;
+		public Double? StartTime;
+		public Double? EndTime;
+		public IDictionary<string, List<string>> CustomFlags;
 
-        public string Name;
-        public string Sku;
-        public double Price;
-        public double Quantity;
-        public string Brand;
-        public string CouponCode;
-        public int? Position;
-        public string Category;
-        public string Variant;
-        public Dictionary<string, string> customAttributes;
+		public MPEvent(string eventName, EventType eventType = EventType.Other)
+		{
+			this.EventName = eventName;
+			this.EventType = eventType;
+		}
+	}
 
-        private Product()
-        {
-        }
+	[Serializable]
+	public sealed class Product
+	{
 
-        public Product(string name, string sku, double price, double quantity)
-        {
-            this.Name = name;
-            this.Sku = sku;
-            this.Price = price;
-            this.Quantity = quantity;
-        }
-    }
+		public string Name;
+		public string Sku;
+		public double Price;
+		public double Quantity;
+		public string Brand;
+		public string CouponCode;
+		public int? Position;
+		public string Category;
+		public string Variant;
+		public Dictionary<string, string> customAttributes;
 
-    [Serializable]
-    public sealed class TransactionAttributes
-    {
-        public string TransactionId;
-        public string Affiliation;
-        public double? Revenue = null;
-        public double? Shipping = null;
-        public double? Tax = null;
-        public string CouponCode;
+		private Product()
+		{
+		}
 
-        private TransactionAttributes(){}
+		public Product(string name, string sku, double price, double quantity)
+		{
+			this.Name = name;
+			this.Sku = sku;
+			this.Price = price;
+			this.Quantity = quantity;
+		}
+	}
 
-        public TransactionAttributes(string transactionId)
-        {
-            this.TransactionId = transactionId;
-        }
-    }
+	[Serializable]
+	public sealed class TransactionAttributes
+	{
+		public string TransactionId;
+		public string Affiliation;
+		public double? Revenue = null;
+		public double? Shipping = null;
+		public double? Tax = null;
+		public string CouponCode;
 
-    [Serializable]
-    public sealed class Impression
-    {
-        public string ImpressionListName;
-        public Product[] Products;
+		private TransactionAttributes()
+		{
+		}
 
-        private Impression(){}
+		public TransactionAttributes(string transactionId)
+		{
+			this.TransactionId = transactionId;
+		}
+	}
 
-        public Impression(string impressionListName, Product[] products)
-        {
-            this.ImpressionListName = impressionListName;
-            this.Products = products;
-        }
-    }
+	[Serializable]
+	public sealed class Impression
+	{
+		public string ImpressionListName;
+		public Product[] Products;
 
-    [Serializable]
-    public sealed class Promotion
-    {
-        public string Id;
-        public string Name;
-        public string Creative;
-        public int? Position;
+		private Impression()
+		{
+		}
 
-        private Promotion(){}
+		public Impression(string impressionListName, Product[] products)
+		{
+			this.ImpressionListName = impressionListName;
+			this.Products = products;
+		}
+	}
 
-        public Promotion(string id, string name, string creative, int? position)
-        {
-            this.Id = id;
-            this.Name = name;
-            this.Creative = creative;
-            this.Position = position;
-        }
-    }
+	[Serializable]
+	public sealed class Promotion
+	{
+		public string Id;
+		public string Name;
+		public string Creative;
+		public int? Position;
 
-    public enum EventType
-    {
-        Navigation = 1,
-        Location,
-        Search,
-        Transaction,
-        UserContent,
-        UserPreference,
-        Social,
-        Other
-    };
+		private Promotion()
+		{
+		}
 
-    public enum UserIdentity
-    {
-        Other = 0,
-        CustomerId,
-        Facebook,
-        Twitter,
-        Google,
-        Microsoft,
-        Yahoo,
-        Email,
-        Alias,
-        FacebookCustomAudienceId
-    };
+		public Promotion(string id, string name, string creative, int? position)
+		{
+			this.Id = id;
+			this.Name = name;
+			this.Creative = creative;
+			this.Position = position;
+		}
+	}
 
-    public enum Environment
-    {
-        AutoDetect = 0,
-        Development,
-        Production
-    };
+	public enum EventType
+	{
+		Navigation = 1,
+		Location,
+		Search,
+		Transaction,
+		UserContent,
+		UserPreference,
+		Social,
+		Other}
 
-    public enum InstallType
-    {
-        AutoDetect = 0,
-        KnownInstall,
-        KnownUpgrade
-    }
+	;
 
-    public enum ProductAction
-    {
-        AddToCart = 1,
-        RemoveFromCart,
-        Checkout,
-        CheckoutOption,
-        Click,
-        ViewDetail,
-        Purchase,
-        Refund,
-        AddToWishlist,
-        RemoveFromWishlist
-    };
+	public enum UserIdentity
+	{
+		Other = 0,
+		CustomerId,
+		Facebook,
+		Twitter,
+		Google,
+		Microsoft,
+		Yahoo,
+		Email,
+		Alias,
+		FacebookCustomAudienceId,
+		Other2,
+		Other3,
+		Other4}
 
-    public enum PromotionAction
-    {
-        View = 0,
-        Click
-    };
+	;
 
-    public static class UserAttribute
-    {
-        public const string
-        FirstName = "$FirstName",
-        LastName = "$LastName",
-        Address = "$Address",
-        State = "$State",
-        City = "$City",
-        Zipcode = "$Zipcode",
-        Country = "$Country",
-        Age = "$Age",
-        Gender = "$Gender",
-        MobileNumber = "$MobileNumber";
-    };
+	public enum Environment
+	{
+		AutoDetect = 0,
+		Development,
+		Production}
 
-    public interface IMParticleSDK
-    {
-        void LogEvent(string eventName, EventType eventType, Dictionary<string, string> eventInfo);
+	;
 
-        void LogCommerceEvent(CommerceEvent commerceEvent);
+	public enum InstallType
+	{
+		AutoDetect = 0,
+		KnownInstall,
+		KnownUpgrade
+	}
 
-        void LogScreen(string screenName, Dictionary<string, string> eventInfo);
+	public enum ProductAction
+	{
+		AddToCart = 1,
+		RemoveFromCart,
+		Checkout,
+		CheckoutOption,
+		Click,
+		ViewDetail,
+		Purchase,
+		Refund,
+		AddToWishlist,
+		RemoveFromWishlist}
 
-        void SetUserAttribute(string key, string val);
+	;
 
-        void SetUserAttributeArray(string key, string[] values);
+	public enum PromotionAction
+	{
+		View = 0,
+		Click}
 
-        void SetUserIdentity(string identity, UserIdentity identityType);
+	;
 
-        void SetUserTag(string tag);
+	public static class UserAttribute
+	{
+		public const string
+			FirstName = "$FirstName",
+			LastName = "$LastName",
+			Address = "$Address",
+			State = "$State",
+			City = "$City",
+			Zipcode = "$Zipcode",
+			Country = "$Country",
+			Age = "$Age",
+			Gender = "$Gender",
+			MobileNumber = "$MobileNumber";
+	};
 
-        void RemoveUserAttribute(string key);
+	public enum LogLevel
+	{
+		NONE,
+		/**
+         * Used for critical issues with the SDK or its configuration.
+         */
+		ERROR,
+		/**
+         * (default) Used to warn developers of potentially unintended consequences of their use of the SDK.
+         */
+		WARNING,
+		/**
+         * Used to communicate the internal state and processes of the SDK.
+         */
+		DEBUG,
+		/*
+         * Used to relay fine-grained issues with the usage of the SDK
+         */
+		VERBOSE,
+		/*
+         * Used to communicate
+         */
+		INFO
+	}
 
-        int IncrementUserAttribute(string key, int incrementValue);
+	[Serializable]
+	public sealed class LocationTracking
+	{
+		public Boolean Enabled { get; }
 
-        void LeaveBreadcrumb(string breadcrumbName, Dictionary<string, string> eventInfo);
+		public string Provider { get; }
 
-        void SetOptOut(bool optOut);
+		public long? MinTime { get; }
 
-        void Logout();
+		public long? MinDistance { get; }
 
-        Environment GetEnvironment();
+		public long? MinAccuracy { get; }
 
-        void Initialize(string apiKey, string apiSecret, Environment environment);
+		public LocationTracking(Boolean enabled)
+		{
+			this.Enabled = enabled;
+		}
 
-        void SetUploadInterval(int uploadInterval);
-    }
+		public LocationTracking(String provider, long minTime, long minDistance, long minAccuracy)
+		{
+			this.Enabled = true;
+			this.Provider = provider;
+			this.MinTime = minTime;
+			this.MinDistance = minDistance;
+			this.MinAccuracy = minAccuracy;
+		}
+	}
 
-    public sealed class MParticle : MonoBehaviour, IMParticleSDK
-    {
+	[Serializable]
+	public sealed class PushRegistration
+	{
+		public String AndroidSenderId;
+		public String AndroidInstanceId;
+		public String IOSToken;
+	}
 
+	[Serializable]
+	public sealed class MParticleOptions
+	{
+		public InstallType? InstallType;
+		public Environment? Environment;
+		public String ApiKey;
+		public String ApiSecret;
+		public IdentityApiRequest IdentifyRequest;
+		public Boolean? DevicePerformanceMetricsDisabled;
+		public Boolean? IdDisabled;
+		public int? UploadInterval;
+		public int? SessionTimeout;
+		public Boolean? UnCaughtExceptionLogging;
+		public LogLevel? LogLevel;
+		public LocationTracking LocationTracking;
+		public PushRegistration PushRegistration;
+		public OnUserIdentified IdentityStateListener;
+	}
 
-        private static MParticle instance;
+	[Serializable]
+	public sealed class IdentityApiRequest
+	{
+		public IdentityApiRequest()
+		{
 
-        public static MParticle Instance
-        {
-            get { return instance ?? (instance = new GameObject("MParticle").AddComponent<MParticle>()); }
-        }
+		}
 
-        private IMParticleSDK mp;
+		public IdentityApiRequest(MParticleUser user)
+		{
+			if (user != null)
+			{
+				UserIdentities = user.GetUserIdentities();
+			}
+		}
 
-        private IMParticleSDK mParticleInstance
-        {
-            get
-            {
-                if (mp == null)
-                {
-                #if UNITY_ANDROID
+		public Dictionary<UserIdentity, String> UserIdentities = new Dictionary<UserIdentity, string>();
+		public OnUserAlias UserAliasHandler;
+	}
+
+	public delegate void OnUserAlias(MParticleUser previousUser,MParticleUser newUser);
+
+	public abstract class MParticleUser
+	{
+		public abstract long Mpid { get; }
+
+		/// <summary>
+		/// Sets a single user tag or attribute. The tag will be combined with any existing attributes.
+		/// There is a 100 count limit to user attributes.
+		/// </summary>
+		/// <param name="tag">The user tag/attribute.</param>
+		public abstract bool SetUserTag(String tag);
+
+		public abstract Dictionary<UserIdentity, string> GetUserIdentities();
+
+		public abstract Dictionary<string, string> GetUserAttributes();
+
+		public abstract bool SetUserAttributes(Dictionary<string, string> userAttributes);
+
+		public abstract bool SetUserAttribute(string key, string val);
+
+		/// <summary>
+		///  Removes a single user attribute.
+		/// </summary>
+		/// <param name="tag">The user attribute key.</param>
+		public abstract bool RemoveUserAttribute(string key);
+
+		public override string ToString()
+		{
+			return "User: \n" + "\tMPID = " + Mpid + "\n\tUser Identitites = " + GetUserIdentities().Aggregate("", (aggrigate, pair) => aggrigate + pair.Key.ToString() + ":" + pair.Value + ", ") + "\n\tUser Attributes = " + GetUserAttributes().Aggregate("", (aggrigate, pair) => aggrigate + pair.Key.ToString() + ":" + pair.Value + ", ");
+		}
+	}
+
+	public interface IIdentityApi
+	{
+		MParticleUser CurrentUser { get; }
+
+		MParticleUser GetUser(long mpid);
+
+		void AddIdentityStateListener(OnUserIdentified listener);
+
+		void RemoveIdentityStateListener(OnUserIdentified listener);
+
+		IMParticleTask<IdentityApiResult> Identify(IdentityApiRequest request = null);
+
+		IMParticleTask<IdentityApiResult> Login(IdentityApiRequest request = null);
+
+		IMParticleTask<IdentityApiResult> Logout(IdentityApiRequest request = null);
+
+		IMParticleTask<IdentityApiResult> Modify(IdentityApiRequest request);
+	}
+
+	public delegate void OnUserIdentified(MParticleUser user);
+
+	public interface IMParticleTask<T>
+	{
+		Boolean IsComplete();
+
+		Boolean IsSuccessful();
+
+		T GetResult();
+
+		IMParticleTask<T> AddSuccessListener(OnSuccess listener);
+
+		IMParticleTask<T> AddFailureListener(OnFailure listener);
+	}
+
+	public delegate void OnSuccess(IdentityApiResult result);
+	public delegate void OnFailure(IdentityHttpResponse result);
+
+	public sealed class IdentityApiResult
+	{
+		public MParticleUser User;
+	}
+
+	public class IdentityHttpResponse
+	{
+		public Boolean IsSuccessful;
+		public List<Error> Errors = new List<Error>();
+		public int HttpCode;
+	}
+
+	public sealed class Error
+	{
+		public String Message;
+		public String Code;
+	}
+
+	public interface IMParticleSDK
+	{
+		void LogEvent(MPEvent mpEvent);
+
+		void LogEvent(CommerceEvent commerceEvent);
+
+		void LogScreen(string screenName);
+
+		void LeaveBreadcrumb(string breadcrumbName);
+
+		void SetOptOut(bool optOut);
+
+		Environment Environment { get; }
+
+		void Initialize(MParticleOptions options);
+
+		IIdentityApi Identity { get; }
+
+		void Upload();
+	}
+
+	public sealed class MParticle : MonoBehaviour, IMParticleSDK
+	{
+
+		private static MParticle instance;
+
+		public static MParticle Instance
+		{
+			get { return instance ?? (instance = new GameObject("MParticle").AddComponent<MParticle>()); }
+		}
+
+		private IMParticleSDK mp;
+
+		private IMParticleSDK mParticleInstance
+		{
+			get
+			{
+				if (mp == null)
+				{
+					#if UNITY_ANDROID
                     mp = new MParticleAndroid ();
-                #elif UNITY_IPHONE
-                    mp = new MParticleiOS ();
-                #endif
-                }
-                return mp;
-            }
-        }
+					#elif UNITY_IPHONE
+					mp = new MParticleiOS();
+					#endif
+				}
+				return mp;
+			}
+		}
 
-        void Awake()
-        {
+		private IIdentityApi _identity;
 
-        }
+		public IIdentityApi Identity
+		{
+			get
+			{
+				return mParticleInstance.Identity;
+			}
+		}
 
-        /// <summary>
-        /// Starts the mParticle SDK
-        /// </summary>
-        /// <param name="apiKey">Your application's mParticle key retrieved from app.mparticle.com/apps</param>
-        /// <param name="apiSecret">Your application's mParticle secret retrieved from app.mparticle.com/apps</param>
-        /// <param name="environment">Force the SDK into either Production or Development mode.</param>
-        public void Initialize(string apiKey, string apiSecret, Environment environment = Environment.AutoDetect)
-        {
-            mParticleInstance.Initialize(apiKey, apiSecret, environment);
-        }
+		void Awake()
+		{
 
-        /// <summary>
-        /// Logs an event. The eventInfo is limited to 100 key value pairs.
-        /// The eventName and strings in eventInfo cannot contain more than 255 characters.
-        /// </summary>
-        /// <param name="eventName">The name of the event to be tracked (required not null)</param>
-        /// <param name="eventType">An enum value that indicates the type of event that is to be tracked.</param>
-        /// <param name="eventInfo">A dictionary containing further information about the event.</param>
-        public void LogEvent(string eventName, EventType eventType, Dictionary<string, string> eventInfo)
-        {
-            mParticleInstance.LogEvent(eventName, eventType, eventInfo);
-        }
+		}
 
-        /// <summary>
-        /// Logs a product action, promotion or impression event.
-        /// </summary>
-        /// <param name="commerceEvent">The commerce event (required not null)</param>
-        public void LogCommerceEvent(CommerceEvent commerceEvent)
-        {
-            mParticleInstance.LogCommerceEvent(commerceEvent);
-        }
+		/// <summary>
+		/// Starts the mParticle SDK
+		/// </summary>
+		/// <param name="options">Your application's startup options</param>
+		public void Initialize(MParticleOptions options)
+		{
+			mParticleInstance.Initialize(options);
+		}
 
-        /// <summary>
-        /// Logs a screen.
-        /// </summary>
-        /// <param name="screenName">The name of the screen to be tracked (required not null)</param>
-        /// <param name="eventInfo">A dictionary containing further information about the screen.</param>
-        public void LogScreen(string screenName, Dictionary<string, string> eventInfo)
-        {
-            mParticleInstance.LogScreen(screenName, eventInfo);
-        }
+		/// <summary>
+		/// Logs a product action, promotion or impression event.
+		/// </summary>
+		/// <param name="commerceEvent">The commerce event (required not null)</param>
+		public void LogEvent(CommerceEvent commerceEvent)
+		{
+			mParticleInstance.LogEvent(commerceEvent);
+		}
 
-        /// <summary>
-        /// Sets a single user attribute. The property will be combined with any existing attributes.
-        /// There is a 100 count limit to user attributes.
-        /// </summary>
-        /// <param name="key">The attribute key.</param>
-        /// <param name="val">The attribute value.</param>
-        public void SetUserAttribute(string key, string val)
-        {
-            mParticleInstance.SetUserAttribute(key, val);
-        }
+		public void LogEvent(MPEvent mpEvent)
+		{
+			mParticleInstance.LogEvent(mpEvent);
+		}
 
-        /// <summary>
-        /// Sets a single user attribute. The property will be combined with any existing attributes.
-        /// There is a 100 count limit to user attributes.
-        /// </summary>
-        /// <param name="key">The attribute key.</param>
-        /// <param name="values">The attribute values.</param>
-        public void SetUserAttributeArray(string key, string[] values)
-        {
-            mParticleInstance.SetUserAttributeArray(key, values);
-        }
+		/// <summary>
+		/// Logs a screen.
+		/// </summary>
+		/// <param name="screenName">The name of the screen to be tracked (required not null)</param>
+		/// <param name="eventInfo">A dictionary containing further information about the screen.</param>
+		public void LogScreen(string screenName)
+		{
+			mParticleInstance.LogScreen(screenName);
+		}
 
-        /// <summary>
-        /// Sets User/Customer Identity.
-        /// </summary>
-        /// <param name="identity">A string representing the user identity.</param>
-        /// <param name="identityType">An enum with the user identity type.</param>
-        public void SetUserIdentity(string identity, UserIdentity identityType)
-        {
-            mParticleInstance.SetUserIdentity(identity, identityType);
-        }
+		/// <summary>
+		/// Leaves a breadcrumb.
+		/// </summary>
+		/// <param name="breadcrumbName">The name of the breadcrumb (required not null)</param>
+		/// <param name="eventInfo">A dictionary containing further information about the breadcrumb.</param>
+		public void LeaveBreadcrumb(string breadcrumbName)
+		{
+			mParticleInstance.LeaveBreadcrumb(breadcrumbName);
+		}
 
-        /// <summary>
-        /// Sets a single user tag or attribute. The tag will be combined with any existing attributes.
-        /// There is a 100 count limit to user attributes.
-        /// </summary>
-        /// <param name="tag">The user tag/attribute.</param>
-        public void SetUserTag(string tag)
-        {
-            mParticleInstance.SetUserTag(tag);
-        }
+		/// <summary>
+		/// Sets the opt-out status for the application. Set it to true to opt-out of event tracking. Default value is false.
+		/// </summary>
+		/// <param name="optOut">The opt-out status.</param>
+		public void SetOptOut(bool optOut)
+		{
+			mParticleInstance.SetOptOut(optOut);
+		}
 
-        /// <summary>
-        ///  Removes a single user attribute.
-        /// </summary>
-        /// <param name="tag">The user attribute key.</param>
-        public void RemoveUserAttribute(string key)
-        {
-            mParticleInstance.RemoveUserAttribute(key);
-        }
+		/// <summary>
+		/// Gets the SDK running environment. The possible values are Development or Production.
+		/// </summary>
+		/// <returns>Whether the SDK is running in Development or Production mode.</returns>
+		public Environment Environment
+		{
+			get
+			{
+				return mParticleInstance.Environment;
+			}
+		}
 
-        /// <summary>
-        /// Increments the value of a user attribute by the provided amount. If the key does not
-        /// exist among the current user attributes, this method will add the key to the user attributes
-        /// and set the value to the provided amount. If the key already exists and the existing value is not
-        /// a number, the operation will abort and the returned value will be zero.
-        /// </summary>
-        /// <param name="key">The attribute key.</param>
-        /// <param name="incrementValue">The increment amount.</param>
-        /// <returns>The new value amount or zero, in case of failure.</returns>
-        public int IncrementUserAttribute(string key, int incrementValue)
-        {
-            int newValue = mParticleInstance.IncrementUserAttribute(key, incrementValue);
-            return newValue;
-        }
-
-        /// <summary>
-        /// Leaves a breadcrumb.
-        /// </summary>
-        /// <param name="breadcrumbName">The name of the breadcrumb (required not null)</param>
-        /// <param name="eventInfo">A dictionary containing further information about the breadcrumb.</param>
-        public void LeaveBreadcrumb(string breadcrumbName, Dictionary<string, string> eventInfo)
-        {
-            mParticleInstance.LeaveBreadcrumb(breadcrumbName, eventInfo);
-        }
-
-        /// <summary>
-        /// Sets the opt-out status for the application. Set it to true to opt-out of event tracking. Default value is false.
-        /// </summary>
-        /// <param name="optOut">The opt-out status.</param>
-        public void SetOptOut(bool optOut)
-        {
-            mParticleInstance.SetOptOut(optOut);
-        }
-
-        /// <summary>
-        /// Logs a user out.
-        /// </summary>
-        public void Logout()
-        {
-            mParticleInstance.Logout();
-        }
-
-        /// <summary>
-        /// Gets the SDK running environment. The possible values are Development or Production.
-        /// </summary>
-        /// <returns>Whether the SDK is running in Development or Production mode.</returns>
-        public Environment GetEnvironment()
-        {
-            return mParticleInstance.GetEnvironment();
-        }
-
-        /// <summary>
-        /// Set the upload interval period to control how frequently uploads occur.
-        /// </summary>
-        /// <param name="uploadInterval">The number of seconds between uploads</param>
-        public void SetUploadInterval(int uploadInterval)
-        {
-            mParticleInstance.SetUploadInterval(uploadInterval);
-        }
-    }
-}
+		public void Upload()
+		{
+			mParticleInstance.Upload();
+		}
+			
+		/*
+		 * Callback methods, these will be called by the native objective-c sdk
+		 */
+		public void OnUserIdentified(string userIdentified)
+		{
+			Console.WriteLine("OnUserIdentified callback triggered:\n" + userIdentified + "\n");
+#if UNITY_IOS
+			if (Identity is mParticleiOs.IdentityCallbacks)
+			{
+				(Identity as mParticleiOs.IdentityCallbacks).OnUserIdentified(userIdentified);
+			}
 #endif
+		}
+
+		public void OnUserAlias(string usersMessage)
+		{
+			Console.WriteLine("OnUserAlias callback triggered:\n" + usersMessage + "\n");
+#if UNITY_IOS
+			if (Identity is mParticleiOs.IdentityCallbacks)
+			{
+				(Identity as mParticleiOs.IdentityCallbacks).OnUserAlias(usersMessage);
+			}
+#endif
+		}
+
+		public void OnTaskSuccess(string successMessage)
+		{
+			Console.WriteLine("OnTaskSuccess callback triggered:\n" + successMessage + "\n");
+#if UNITY_IOS
+			if (Identity is mParticleiOs.IdentityCallbacks)
+			{
+				(Identity as mParticleiOs.IdentityCallbacks).OnTaskSuccess(successMessage);
+			}
+#endif
+		}
+
+		public void OnTaskFailure(string failureMessage)
+		{
+			Console.WriteLine("OnTaskFailure callback triggered:\n" + failureMessage + "\n");
+#if UNITY_IOS
+			if (Identity is mParticleiOs.IdentityCallbacks)
+			{
+				(Identity as mParticleiOs.IdentityCallbacks).OnTaskFailure(failureMessage);
+			}
+#endif
+		}
+
+		public void Message(string message)
+		{
+			Console.WriteLine("Message Received: " + message);
+		}
+	}
+
+	public sealed class IdentityApi : IIdentityApi
+	{
+		public const int ThrottleError = 429;
+
+		public MParticleUser GetUser(long mpid)
+		{
+			return MParticle.Instance.Identity.GetUser(mpid);
+		}
+
+		public void AddIdentityStateListener(OnUserIdentified listener)
+		{
+			MParticle.Instance.Identity.AddIdentityStateListener(listener);
+		}
+
+		public void RemoveIdentityStateListener(OnUserIdentified listener)
+		{
+			MParticle.Instance.Identity.RemoveIdentityStateListener(listener);
+		}
+
+		public IMParticleTask<IdentityApiResult> Identify(IdentityApiRequest request = null)
+		{
+			return MParticle.Instance.Identity.Identify(request);
+		}
+
+		public IMParticleTask<IdentityApiResult> Login(IdentityApiRequest request = null)
+		{
+			return MParticle.Instance.Identity.Login(request);
+		}
+
+		public IMParticleTask<IdentityApiResult> Logout(IdentityApiRequest request = null)
+		{
+			return MParticle.Instance.Identity.Logout(request);
+		}
+
+		public IMParticleTask<IdentityApiResult> Modify(IdentityApiRequest request)
+		{
+			return MParticle.Instance.Identity.Modify(request);
+		}
+
+		public MParticleUser CurrentUser
+		{
+			get
+			{
+				return MParticle.Instance.Identity.CurrentUser;
+			}
+		}
+
+	
+
+	}
+}

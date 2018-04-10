@@ -1,407 +1,452 @@
-#if UNITY_ANDROID
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-namespace mParticle
+using System.Linq;
+using mParticle.android;
+using mParticle;
+
+
+namespace mParticleAndroid
 {
 	public sealed class MParticleAndroid : IMParticleSDK
 	{
 		private AndroidJavaObject mp;
+		private IdentityApiImpl identityApi;
+		private ToAndroidUtils toUtils = new ToAndroidUtils();
 
-		AndroidJavaClass identityTypeClass = new AndroidJavaClass ("com.mparticle.MParticle$IdentityType");
-		AndroidJavaClass eventTypeClass = new AndroidJavaClass ("com.mparticle.MParticle$EventType");
-		AndroidJavaClass installTypeClass = new AndroidJavaClass("com.mparticle.MParticle$InstallType");
-		AndroidJavaClass environmentClass = new AndroidJavaClass ("com.mparticle.MParticle$Environment");
-		AndroidJavaClass integerClass = new AndroidJavaClass ("java.lang.Integer");
-		AndroidJavaClass doubleClass = new AndroidJavaClass ("java.lang.Double");
-
-		public MParticleAndroid ()
+		public MParticleAndroid()
 		{
-
 		}
 
-		public void Initialize (string apiKey, string apiSecret, Environment environment = Environment.AutoDetect)
+		public void Initialize(MParticleOptions options)
 		{
-			AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"); 
-			new AndroidJavaClass ("com.mparticle.MParticle").CallStatic ("start", 
-				new object[] { jc.GetStatic<AndroidJavaObject>("currentActivity"), ConvertToMpInstallType(InstallType.AutoDetect), ConvertToMpEnvironment(environment), apiKey, apiSecret });
-			mp = new AndroidJavaClass ("com.mparticle.MParticle").
-				CallStatic<AndroidJavaObject> ("getInstance");
+			AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+			new AndroidJavaClass("com.mparticle.MParticle").CallStatic("start", toUtils.ConvertToMpOptions(options, jc.GetStatic<AndroidJavaObject>("currentActivity")));
+			mp = new AndroidJavaClass("com.mparticle.MParticle").
+				CallStatic<AndroidJavaObject>("getInstance");
 		}
 
-		public Environment GetEnvironment ()
+		public IIdentityApi Identity
 		{
-			return ConvertToCSharpEnvironment (mp.Call<AndroidJavaObject> (
-				"getEnvironment"
-			));
+			get
+			{
+				if (identityApi == null)
+				{
+					identityApi = new IdentityApiImpl(mp.Call<AndroidJavaObject>("Identity"));
+				}
+				if (identityApi.isDead())
+				{
+					identityApi.setObject(mp.Call<AndroidJavaObject>("Identity"));
+				}
+				return identityApi;
+			}
 		}
 
-		public void SetEnvironment (Environment environment)
+		public mParticle.Environment Environment
 		{
-			mp.Call (
+			get
+			{
+				return ToCSUtils.ConvertToCSharpEnvironment(mp.Call<AndroidJavaObject>(
+						"getEnvironment"
+					));
+			}
+		}
+
+		public void SetEnvironment(mParticle.Environment environment)
+		{
+			mp.Call(
 				"setEnvironment", 
-				new object[] { ConvertToMpEnvironment (environment) }
+				new object[] { toUtils.ConvertToMpEnvironment(environment) }
 			);
 		}
 
-		public void SetOptOut (bool optOut)
+		public void SetOptOut(bool optOut)
 		{
-			mp.Call (
+			mp.Call(
 				"setOptOut",
-				ConvertToJavaBoolean (optOut)
+				toUtils.ConvertToJavaBoolean(optOut)
 			);
 		}
 
-		public void LogCommerceEvent (CommerceEvent commerceEvent)
+		public void LogEvent(CommerceEvent commerceEvent)
 		{
 			AndroidJavaObject builder;
 			if (commerceEvent.ProductAction > 0 && commerceEvent.Products != null && commerceEvent.Products.Length > 0)
 			{
-				builder = new AndroidJavaObject("com.mparticle.commerce.CommerceEvent$Builder", ConvertToMpProductAction(commerceEvent.ProductAction), ConvertToMpProduct(commerceEvent.Products[0]));
+				builder = new AndroidJavaObject("com.mparticle.commerce.CommerceEvent$Builder", toUtils.ConvertToMpProductAction(commerceEvent.ProductAction), toUtils.ConvertToMpProduct(commerceEvent.Products[0]));
 			}
 			else if (commerceEvent.Promotions != null && commerceEvent.Promotions.Length > 0)
 			{
-				builder = new AndroidJavaObject("com.mparticle.commerce.CommerceEvent$Builder", ConvertToMpPromotionAction(commerceEvent.PromotionAction), ConvertToMpPromotion(commerceEvent.Promotions[0]));
+				builder = new AndroidJavaObject("com.mparticle.commerce.CommerceEvent$Builder", toUtils.ConvertToMpPromotionAction(commerceEvent.PromotionAction), toUtils.ConvertToMpPromotion(commerceEvent.Promotions[0]));
 			}
-			else 
+			else
 			{
-				builder = new AndroidJavaObject("com.mparticle.commerce.CommerceEvent$Builder", ConvertToMpImpression(commerceEvent.Impressions[0]));
+				builder = new AndroidJavaObject("com.mparticle.commerce.CommerceEvent$Builder", toUtils.ConvertToMpImpression(commerceEvent.Impressions[0]));
 			}
-			builder.Call<AndroidJavaObject>("transactionAttributes", ConvertToMpTransactionAttributes(commerceEvent.TransactionAttributes));
-			builder.Call<AndroidJavaObject>("screen", commerceEvent.ScreenName);
-			builder.Call<AndroidJavaObject>("currency", commerceEvent.Currency);
-			builder.Call<AndroidJavaObject>("customAttributes", ConvertDictToMap(commerceEvent.CustomAttributes));
-			builder.Call<AndroidJavaObject>("checkoutOptions", commerceEvent.CheckoutOptions);
-			if (commerceEvent.CheckoutStep != null) 
+			if (commerceEvent.TransactionAttributes != null)
 			{
-				builder.Call<AndroidJavaObject>("checkoutStep", integerClass.CallStatic<AndroidJavaObject> ("valueOf", commerceEvent.CheckoutStep));
+				builder.Call<AndroidJavaObject>("transactionAttributes", toUtils.ConvertToMpTransactionAttributes(commerceEvent.TransactionAttributes));
 			}
-			if ( commerceEvent.NonInteractive.HasValue) 
+			if (commerceEvent.ScreenName != null)
+			{
+				builder.Call<AndroidJavaObject>("screen", commerceEvent.ScreenName);
+			}
+			if (commerceEvent.Currency != null)
+			{
+				builder.Call<AndroidJavaObject>("currency", commerceEvent.Currency);
+			}
+			if (commerceEvent.CustomAttributes != null)
+			{
+				builder.Call<AndroidJavaObject>("customAttributes", toUtils.ConvertDictToMap(commerceEvent.CustomAttributes));
+			}
+			if (commerceEvent.CheckoutOptions != null)
+			{
+				builder.Call<AndroidJavaObject>("checkoutOptions", commerceEvent.CheckoutOptions);
+			}
+			if (commerceEvent.CheckoutStep != null)
+			{
+				builder.Call<AndroidJavaObject>("checkoutStep", toUtils.integerClass.CallStatic<AndroidJavaObject>("valueOf", commerceEvent.CheckoutStep));
+			}
+			if (commerceEvent.NonInteractive.HasValue)
 			{
 				builder.Call<AndroidJavaObject>("nonInteraction", (bool)commerceEvent.NonInteractive);
 			}
 
-			if (commerceEvent.Products != null) 
+			if (commerceEvent.Products != null)
 			{
-				AndroidJavaObject productList = new AndroidJavaObject ("java.util.ArrayList");
+				AndroidJavaObject productList = new AndroidJavaObject("java.util.ArrayList");
 
-				foreach (Product product in commerceEvent.Products) {
-					productList.Call<bool> (
+				foreach (Product product in commerceEvent.Products)
+				{
+					productList.Call<bool>(
 						"add", 
-						new object[]{ ConvertToMpProduct(product)}
+						new object[]{ toUtils.ConvertToMpProduct(product) }
 					);
 				}
 				builder.Call<AndroidJavaObject>("products", productList);
 			}
 
-			if (commerceEvent.Promotions != null) 
+			if (commerceEvent.Promotions != null)
 			{
-				AndroidJavaObject promotionList = new AndroidJavaObject ("java.util.ArrayList");
+				AndroidJavaObject promotionList = new AndroidJavaObject("java.util.ArrayList");
 
-				foreach (Promotion promotion in commerceEvent.Promotions) {
-					promotionList.Call<bool> (
+				foreach (Promotion promotion in commerceEvent.Promotions)
+				{
+					promotionList.Call<bool>(
 						"add", 
-						new object[]{ ConvertToMpPromotion(promotion)}
+						new object[]{ toUtils.ConvertToMpPromotion(promotion) }
 					);
 				}
 				builder.Call<AndroidJavaObject>("promotions", promotionList);
 			}
 
-			if (commerceEvent.Impressions != null) 
+			if (commerceEvent.Impressions != null)
 			{
-				AndroidJavaObject impressionList = new AndroidJavaObject ("java.util.ArrayList");
+				AndroidJavaObject impressionList = new AndroidJavaObject("java.util.ArrayList");
 
-				foreach (Impression impression in commerceEvent.Impressions) {
-					impressionList.Call<bool> (
+				foreach (Impression impression in commerceEvent.Impressions)
+				{
+					impressionList.Call<bool>(
 						"add", 
-						new object[]{ ConvertToMpImpression(impression)}
+						new object[]{ toUtils.ConvertToMpImpression(impression) }
 					);
 				}
 				builder.Call<AndroidJavaObject>("impressions", impressionList);
 			}
 			AndroidJavaObject javaCommerceEvent = builder.Call<AndroidJavaObject>("build");
-			mp.Call (
+			mp.Call(
 				"logEvent", 
 				new object[] { javaCommerceEvent }
 			);
 		}
 
-		public void SetUserAttributeArray (string key, string[] values)
+		public void LogEvent(MPEvent mpEvent)
 		{
-			AndroidJavaObject valueList = new AndroidJavaObject ("java.util.ArrayList");
-
-			foreach (string value in values) {
-				valueList.Call<bool> (
-					"add", 
-					new object[]{ value }
-				);
+			AndroidJavaObject builder = new AndroidJavaObject("com.mparticle.MPEvent$Builder", new object[]{ mpEvent.EventName, toUtils.ConvertToMpEventType(mpEvent.EventType) });
+			if (mpEvent.Category != null)
+			{
+				builder.Call<AndroidJavaObject>("category", new object[]{ mpEvent.Category });
+			} 
+			if (mpEvent.CustomFlags != null)
+			{
+				mpEvent.CustomFlags.ToList().ForEach(pair =>
+					{
+						if (pair.Value != null && pair.Key != null)
+						{
+							pair.Value.ForEach(val => builder.Call<AndroidJavaObject>("addCustomFlag", new object[]{ pair.Key, val }));
+						}
+					});
 			}
-			mp.Call<bool> (
-				"setUserAttributeList", 
-				new object[] { key, valueList }
-			);
-		}
-
-		public void RemoveUserAttribute (string key)
-		{
-			mp.Call<bool> (
-				"removeUserAttribute", 
-				new object[] { key }
-			);
-		}
-
-		public int IncrementUserAttribute (string key, int value)
-		{
-			mp.Call<bool> (
-				"incrementUserAttribute", 
-				new object[] { key, value }
-			);
-			return 0;
-		}
-
-		public void Logout ()
-		{
-			mp.Call (
-				"logout"
-			);
+			if (mpEvent.Duration.HasValue)
+			{
+				builder.Call<AndroidJavaObject>("duration", new object[]{ mpEvent.Duration.Value });
+			}
+			if (mpEvent.EndTime.HasValue)
+			{
+				builder.Call<AndroidJavaObject>("endTime", new object[]{ mpEvent.EndTime.Value });
+			}
+			if (mpEvent.Info != null && mpEvent.Info.Count > 0)
+			{
+				builder.Call<AndroidJavaObject>("info", new object[]{ toUtils.ConvertDictToMap(mpEvent.Info) });
+			}
+			if (mpEvent.StartTime.HasValue)
+			{
+				builder.Call<AndroidJavaObject>("startTime", new object[]{ mpEvent.StartTime.Value });
+			}
+			var mpEventAndroidObject = builder.Call<AndroidJavaObject>("build");
+			mp.Call("logEvent", new object[]{ mpEventAndroidObject });
 		}
 
 
-		public void LeaveBreadcrumb (string breadcrumb, Dictionary<string,string> eventData)
+
+		public void LeaveBreadcrumb(string breadcrumb)
 		{
-			mp.Call (
+			mp.Call(
 				"leaveBreadcrumb", 
 				new object[] { breadcrumb }
 			);
 		}
 
-		public void SetUserAttribute (string key, string value)
+		public void LogScreen(string screenName)
 		{
-			mp.Call<Boolean> (
-				"setUserAttribute", 
-				new object[] { key, (object)value }
-			);
-		}
-
-		public void SetUserIdentity (string id, UserIdentity type)
-		{
-			mp.Call (
-				"setUserIdentity", 
-				new object[] { id, ConvertToMpUserIdentity (type) }
-			);
-		}
-
-		public void SetUserTag (string tag)
-		{
-			mp.Call<Boolean> (
-				"setUserTag", 
-				tag
-			);
-		}
-
-		public void LogEvent (string name, EventType eventType, Dictionary<string, string> eventData, long eventLength)
-		{
-			mp.Call (
-				"logEvent", 
-				new object[] { name, ConvertToMpEventType (eventType), ConvertDictToMap (eventData), eventLength }
-			);
-		}
-
-		public void LogEvent (string name, EventType eventType, Dictionary<string, string> eventData)
-		{
-			mp.Call (
-				"logEvent", 
-				new object[] { name, ConvertToMpEventType (eventType), ConvertDictToMap (eventData) }
-			);
-		}
-
-		public void LogEvent (string name, EventType eventType, long eventLength)
-		{
-			mp.Call (
-				"logEvent", 
-				new object[] { name, ConvertToMpEventType (eventType), eventLength }
-			);
-		}
-
-		public void LogEvent (string name, EventType eventType, Dictionary<string, string> eventData, long eventLength, string category)
-		{
-			mp.Call (
-				"logEvent", 
-				new object[] { name, ConvertToMpEventType (eventType), ConvertDictToMap (eventData), eventLength, category }
-			);
-		}
-
-		public void LogScreen (string screenName, Dictionary<string, string> eventData)
-		{
-			mp.Call (
+			mp.Call(
 				"logScreen", 
-				new object[] { screenName, ConvertDictToMap (eventData) }
+				new object[] { screenName }
 			);
 		}
-			
-        public void SetUploadInterval(int uploadInterval)
-        {
-            mp.Call(
-                "setUploadInterval", 
-                new object[] { uploadInterval }
-            );
-        }
 
-		//Utility methods
-		private AndroidJavaObject ConvertDictToMap (Dictionary<string, string> data)
+		public void Upload()
 		{
-			AndroidJavaObject map = new AndroidJavaObject ("java.util.HashMap");
-			if (data != null) {
-				foreach (KeyValuePair<string, string> entry in data) {
-					map.Call<string> (
-						"put", 
-						new string[]{ entry.Key, entry.Value }
-					);
-				}
-			}
-			return map;
-		}
-
-		private AndroidJavaObject ConvertToMpEventType (EventType eventType)
-		{
-			return eventTypeClass.CallStatic<AndroidJavaObject> ("valueOf", eventType.ToString ());
-		}
-
-		private AndroidJavaObject ConvertToMpUserIdentity (UserIdentity userIdentity)
-		{
-			return identityTypeClass.CallStatic<AndroidJavaObject> ("valueOf", userIdentity.ToString ());
-		}
-
-		private AndroidJavaObject ConvertToMpEnvironment (Environment environment)
-		{
-			return environmentClass.CallStatic<AndroidJavaObject> ("valueOf", environment.ToString ());
-		}
-
-		private AndroidJavaObject ConvertToMpInstallType(InstallType installType)
-		{
-			return installTypeClass.CallStatic<AndroidJavaObject>("valueOf", installType.ToString());
-		}
-
-		private string ConvertToMpProductAction (ProductAction action)
-		{
-			switch (action)
-			{
-			case ProductAction.AddToCart:
-				return "add_to_cart";
-			case ProductAction.AddToWishlist:
-				return "add_to_wishlist";
-			case ProductAction.Checkout:
-				return "checkout";
-			case ProductAction.CheckoutOption:
-				return "checkout_option";
-			case ProductAction.Click:
-				return "click";
-			case ProductAction.Purchase:
-				return "purchase";
-			case ProductAction.Refund:
-				return "refund";
-			case ProductAction.RemoveFromWishlist:
-				return "remove_from_wishlist";
-			default:
-				return null;
-			}
-		}
-
-		private string ConvertToMpPromotionAction (PromotionAction action)
-		{
-			switch (action)
-			{
-			case PromotionAction.Click:
-				return "click";
-			case PromotionAction.View:
-				return "view";
-			default:
-				return null;
-			}
-		}
-
-		private AndroidJavaObject ConvertToMpProduct (Product product)
-		{
-			AndroidJavaObject builder = new AndroidJavaObject ("com.mparticle.commerce.Product$Builder", product.Name, product.Sku, product.Price);
-			builder.Call<AndroidJavaObject>("customAttributes", ConvertDictToMap(product.customAttributes));
-			builder.Call<AndroidJavaObject>("category", product.Category);
-			builder.Call<AndroidJavaObject>("couponCode", product.CouponCode);
-			if (product.Position.HasValue) 
-			{
-				AndroidJavaObject javaInteger = integerClass.CallStatic<AndroidJavaObject> ("valueOf", product.Position);
-				builder.Call<AndroidJavaObject>("position", javaInteger);
-			}
-
-			builder.Call<AndroidJavaObject>("quantity", product.Quantity);
-			builder.Call<AndroidJavaObject>("brand", product.Brand);
-			builder.Call<AndroidJavaObject>("variant", product.Variant);
-			return builder.Call<AndroidJavaObject>("build");
-		}
-
-		private AndroidJavaObject ConvertToMpPromotion (Promotion promotion)
-		{
-			AndroidJavaObject javaPromotion = new AndroidJavaObject ("com.mparticle.commerce.Promotion");
-			javaPromotion.Call<AndroidJavaObject>("setCreative", promotion.Creative);
-			javaPromotion.Call<AndroidJavaObject>("setId", promotion.Id);
-			javaPromotion.Call<AndroidJavaObject>("setName", promotion.Name);
-			javaPromotion.Call<AndroidJavaObject>("setPosition", promotion.Position);
-			return javaPromotion;
-		}
-
-		private AndroidJavaObject ConvertToMpImpression(Impression impression)
-		{
-			AndroidJavaObject javaImpression = new AndroidJavaObject ("com.mparticle.commerce.Impression", impression.ImpressionListName, null);
-			if (impression.Products != null) 
-			{
-
-				foreach (Product product in impression.Products) {
-					javaImpression.Call<bool> (
-						"addProduct", 
-						new object[]{ ConvertToMpProduct(product)}
-					);
-				}
-
-			}
-
-			return javaImpression;
-		}
-
-		private AndroidJavaObject ConvertToMpTransactionAttributes(TransactionAttributes attributes)
-		{
-			AndroidJavaObject javaAttributes = new AndroidJavaObject ("com.mparticle.commerce.TransactionAttributes", attributes.TransactionId);
-			javaAttributes.Call<AndroidJavaObject>("setCouponCode", attributes.CouponCode);
-			if (attributes.Tax.HasValue)
-			{
-				javaAttributes.Call<AndroidJavaObject>("setTax", doubleClass.CallStatic<AndroidJavaObject> ("valueOf", attributes.Tax));
-			}
-
-			if (attributes.Shipping.HasValue)
-			{
-				javaAttributes.Call<AndroidJavaObject>("setShipping", doubleClass.CallStatic<AndroidJavaObject> ("valueOf", attributes.Shipping));
-			}
-
-			if (attributes.Revenue.HasValue)
-			{
-				javaAttributes.Call<AndroidJavaObject>("setRevenue", doubleClass.CallStatic<AndroidJavaObject> ("valueOf", attributes.Revenue));
-			}
-
-			return javaAttributes.Call<AndroidJavaObject>("setAffiliation", attributes.Affiliation);
-		}
-
-		private AndroidJavaObject ConvertToJavaBoolean (bool value)
-		{
-			return new AndroidJavaObject ("java.lang.Boolean", value.ToString ());
-		}
-
-		private bool ConvertToCSharpBoolean (AndroidJavaObject value)
-		{
-			return Boolean.Parse (value.Call<string> ("toString"));
-		}
-
-		private Environment ConvertToCSharpEnvironment (AndroidJavaObject value)
-		{
-			return (Environment)Enum.Parse (typeof(Environment), value.Call<string> ("name"));
+			mp.Call("upload");
 		}
 	}
+
+	class IdentityApiImpl : IIdentityApi
+	{
+		AndroidJavaObject identityObject;
+		Dictionary<OnUserIdentified, AndroidOnUserIdentified> identityStateListenerMap = new Dictionary<OnUserIdentified, AndroidOnUserIdentified>();
+		ToAndroidUtils toUtils = new ToAndroidUtils();
+
+		internal IdentityApiImpl(AndroidJavaObject identityObject)
+		{
+			this.identityObject = identityObject;
+		}
+
+		public void AddIdentityStateListener(OnUserIdentified listener)
+		{
+			if (identityStateListenerMap.ContainsKey(listener))
+			{
+				return;
+			}
+			var androidOnUserIdentified = new AndroidOnUserIdentified(listener);
+			identityStateListenerMap.Add(listener, androidOnUserIdentified);
+			identityObject.Call("addIdentityStateListener", new object[]{ androidOnUserIdentified });
+		}
+
+		public void RemoveIdentityStateListener(OnUserIdentified listener)
+		{
+			if (identityStateListenerMap.ContainsKey(listener))
+			{
+				identityObject.Call("removeIdentityStateListener", new object[]{ identityStateListenerMap[listener] });
+				identityStateListenerMap.Remove(listener);
+			}
+						
+		}
+
+		public IMParticleTask<IdentityApiResult> Identify(IdentityApiRequest request = null)
+		{
+			AndroidJavaObject task;
+			if (request == null)
+			{
+				task = identityObject.Call<AndroidJavaObject>("identify");
+			}
+			else
+			{
+				task = identityObject.Call<AndroidJavaObject>("identify", new object[]{ toUtils.ConvertToMpIdentifyRequest(request) });
+			}
+			return new IdentifyTaskImpl(task);
+		}
+
+		public IMParticleTask<IdentityApiResult> Login(IdentityApiRequest request = null)
+		{
+			AndroidJavaObject task;
+			if (request == null)
+			{
+				task = identityObject.Call<AndroidJavaObject>("login");
+			}
+			else
+			{
+				task = identityObject.Call<AndroidJavaObject>("login", new object[]{ toUtils.ConvertToMpIdentifyRequest(request) });
+			}
+			return new IdentifyTaskImpl(task);
+		}
+
+		public IMParticleTask<IdentityApiResult> Logout(IdentityApiRequest request = null)
+		{
+			AndroidJavaObject task;
+			if (request == null)
+			{
+				task = identityObject.Call<AndroidJavaObject>("logout");
+			}
+			else
+			{
+				task = identityObject.Call<AndroidJavaObject>("logout", new object[]{ toUtils.ConvertToMpIdentifyRequest(request) });
+			}
+			return new IdentifyTaskImpl(task);
+		}
+
+		public IMParticleTask<IdentityApiResult> Modify(IdentityApiRequest request)
+		{
+			var task = identityObject.Call<AndroidJavaObject>("modify", new object[]{ toUtils.ConvertToMpIdentifyRequest(request) });
+			return new IdentifyTaskImpl(task);
+		}
+
+		public MParticleUser CurrentUser
+		{
+			get
+			{
+				var userObject = identityObject.Call<AndroidJavaObject>("getCurrentUser");
+				if (userObject == null)
+				{
+					return null;
+				}
+				else
+				{
+					return new MParticleUserImpl(userObject);
+				}
+			}
+		}
+
+		public MParticleUser GetUser(long mpid)
+		{
+			var userObject = identityObject.Call<AndroidJavaObject>("getUser", new object[]{ mpid });
+			if (userObject == null)
+			{
+				return null;
+			}
+			else
+			{
+				return new MParticleUserImpl(userObject);
+			}
+		}
+
+		internal Boolean isDead()
+		{
+			return identityObject == null;
+		}
+
+		internal void setObject(AndroidJavaObject identityObject)
+		{
+			this.identityObject = identityObject;
+		}
+	}
+
+	class MParticleUserImpl : MParticleUser
+	{
+
+		AndroidJavaObject userObject;
+		ToAndroidUtils toUtils = new ToAndroidUtils();
+
+		internal MParticleUserImpl(AndroidJavaObject userObject)
+		{
+			this.userObject = userObject;
+		}
+
+		public override long Mpid
+		{ 
+			get
+			{ 
+				return userObject.Call<long>("getId");
+			}
+
+		}
+
+		public override bool SetUserTag(string tag)
+		{
+			return userObject.Call<bool>("setUserTag", new object[]{ tag });
+		}
+
+		public override Dictionary<UserIdentity, string> GetUserIdentities()
+		{
+			var unityUserIdentities = new Dictionary<UserIdentity, string>();
+			AndroidJavaObject identitiesMap = userObject.Call<AndroidJavaObject>("getUserIdentities");
+			foreach (AndroidJavaObject ent in identitiesMap.Call<AndroidJavaObject>("entrySet").Call<AndroidJavaObject[]>("toArray"))
+			{
+				var key = ent.Call<AndroidJavaObject>("getKey").Call<int>("getValue");
+				var value = ent.Call<string>("getValue");
+				unityUserIdentities.Add((UserIdentity)key, value);
+			}
+			return unityUserIdentities;
+		}
+
+		public override Dictionary<string, string> GetUserAttributes()
+		{
+			var unityUserAttributes = new Dictionary<string, string>();
+			AndroidJavaObject userAttributeMap = userObject.Call<AndroidJavaObject>("getUserAttributes");
+			foreach (AndroidJavaObject ent in userAttributeMap.Call<AndroidJavaObject>("entrySet").Call<AndroidJavaObject[]>("toArray"))
+			{
+				var key = ent.Call<string>("getKey");
+				var value = ent.Call<string>("getValue");
+				unityUserAttributes.Add(key, value);
+			}
+			return unityUserAttributes;
+		}
+
+		public override bool SetUserAttributes(Dictionary<string, string> userAttributes)
+		{
+			return userObject.Call<bool>("setUserAttributes", new object[]{ toUtils.ConvertDictToMap(userAttributes) });
+		}
+
+		public override bool SetUserAttribute(string key, string val)
+		{
+			return userObject.Call<bool>("setUserAttribute", new object[]{ key, val });
+		}
+
+		public override bool RemoveUserAttribute(string key)
+		{
+			return userObject.Call<bool>("removeUserAttribute", new object[]{ key });
+		}
+	}
+
+	class IdentifyTaskImpl : IMParticleTask<IdentityApiResult>
+	{
+
+		AndroidJavaObject taskObject;
+
+		internal IdentifyTaskImpl(AndroidJavaObject taskObject)
+		{
+			this.taskObject = taskObject;
+		}
+
+		public bool IsComplete()
+		{
+			return taskObject.Call<bool>("isComplete");
+		}
+
+		public bool IsSuccessful()
+		{
+			return taskObject.Call<bool>("isSuccessful");
+		}
+
+		public IdentityApiResult GetResult()
+		{
+			return new IdentityApiResult()
+			{
+				User = taskObject.Call<AndroidJavaObject>("getResult") == null ? new MParticleUserImpl(taskObject.Call<AndroidJavaObject>("getResult")) : null
+			};
+		}
+
+		public IMParticleTask<IdentityApiResult> AddSuccessListener(OnSuccess listener)
+		{
+			taskObject.Call<AndroidJavaObject>("addSuccessListener", new object[] { new AndroidOnSuccessListener(listener) });
+			return this;
+		}
+
+		public IMParticleTask<IdentityApiResult> AddFailureListener(OnFailure listener)
+		{
+			taskObject.Call<AndroidJavaObject>("addFailureListener", new object[]{ new AndroidOnFailureListener(listener) });
+			return this;
+		}
+
+	}
 }
-#endif

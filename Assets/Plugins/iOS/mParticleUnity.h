@@ -1,22 +1,39 @@
 #ifndef mParticle_mParticleUnity_h
 #define mParticle_mParticleUnity_h
 
-int _GetEnvironment();
-void _SetOptOut(Boolean optOut);
-
-void _LogEvent(const char *eventName, int eventType, const char *eventInfoJSON);
-void _LogCommerceEvent(const char *commerceEventJSON);
-void _LogScreen(const char *screenName, const char *eventInfoJSON);
-
-void _LeaveBreadcrumb(const char *breadcrumbName, const char *eventInfoJSON);
-
-int _IncrementUserAttribute(const char *key, int incrementValue);
-void _Logout();
-void _SetUserAttribute(const char *key, const char *value);
-void _SetUserAttributeArray(const char *key, const char *values[], int length);
-void _SetUserIdentity(const char *identity, unsigned int identityType);
-void _SetUserTag(const char *tag);
-void _RemoveUserAttribute (const char *key);
+void initialize(const char *optionsJSON);
+int _GetEnvironment(void *empty);
+void _SetOptOut(int optOut);
 void _SetUploadInterval(int uploadInterval);
+
+void _LogEvent(const char *mpEvent);
+void _LogCommerceEvent(const char *commerceEventJSON);
+void _LogScreen(const char *screenName);
+
+void _LeaveBreadcrumb(const char *breadcrumbName);
+
+void _Upload(void);
+void _Destroy(void);
+
+
+char* _Identity_Identify(const char *identityApiRequestJSON);
+char* _Identity_Login(const char *identityApiRequestJSON);
+char* _Identity_Logout(const char *identityApiRequestJSON);
+char* _Identity_Modify(const char *identityApiRequestJSON);
+
+void _Identity_AddIdentityStateListener(const char *callbackId);
+void _Identity_RemoveIdentityStateListener(const char *callbackId);
+
+char* _Identity_GetCurrentUser(void *empty);
+char* _Identity_GetUser(const char *mpid);
+
+char* _User_SetUserAttribute(const char *mpid, const char *key, const char *value);
+char* _User_SetUserAttributes(const char *mpid, const char *attributesJSON);
+char* _User_SetUserTag(const char *mpid, const char *tag);
+char* _User_RemoveUserAttribute(const char *mpid, const char *key);
+char* _User_GetUserAttributes(const char *mpid);
+
+char* _User_GetUserIdentities(const char *mpid);
+char* _User_GetCurrentUserMpid(const char *mpid);
 
 #endif
