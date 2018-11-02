@@ -7,12 +7,18 @@
 #import "MPUserSegments.h"
 #import "MPEnums.h"
 #import "MPCart.h"
+#import "MPConsentState.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface MParticleUser : NSObject
 
 @property(readonly, strong, nonnull) NSNumber *userId;
+
+/**
+ Returns whether this user is currently logged in
+ */
+@property(readonly) BOOL isLoggedIn;
 
 /**
  Gets current user identities (readonly)
@@ -37,29 +43,30 @@ NS_ASSUME_NONNULL_BEGIN
  Increments the value of a user attribute by the provided amount. If the key does not
  exist among the current user attributes, this method will add the key to the user attributes
  and set the value to the provided amount. If the key already exists and the existing value is not
- a number, the operation will abort and the returned value will be nil.
+ a number, the operation will abort.
+ 
+ Note: this method has been changed to be async, return value will always be @0.
+ 
  @param key The attribute key
  @param value The increment amount
- @returns The new value amount or nil, in case of failure
+ @returns The static value @0
  */
 - (nullable NSNumber *)incrementUserAttribute:(NSString *)key byValue:(NSNumber *)value;
 
 /**
  Sets a single user attribute. The property will be combined with any existing attributes.
- There is a 100 count limit to user attributes. Passing in an empty string value (@"") for an
- existing key will remove the user attribute.
+ There is a 100 count limit to user attributes.
  @param key The user attribute key
  @param value The user attribute value
  */
-- (void)setUserAttribute:(NSString *)key value:(nullable id)value;
+- (void)setUserAttribute:(NSString *)key value:(id)value;
 
 /**
  Sets a list of user attributes associated with a key.
- Passing nil to values for an existing key will remove the user attribute.
  @param key The user attribute list key
  @param values An array of user attributes
  */
-- (void)setUserAttributeList:(NSString *)key values:(nullable NSArray<NSString *> *)values;
+- (void)setUserAttributeList:(NSString *)key values:(NSArray<NSString *> *)values;
 
 /**
  Sets a single user tag or attribute.  The property will be combined with any existing attributes.
@@ -83,8 +90,19 @@ NS_ASSUME_NONNULL_BEGIN
  @param endpointId The endpoint id
  @param completionHandler A block to be called when the results are available. The user segments array is passed to this block
  */
-- (void)userSegments:(NSTimeInterval)timeout endpointId:(NSString *)endpointId completionHandler:(MPUserSegmentsHandler)completionHandler;
+- (void)userSegments:(NSTimeInterval)timeout endpointId:(NSString *)endpointId completionHandler:(MPUserSegmentsHandler)completionHandler __attribute__((deprecated("")));
 
+#pragma mark - Consent State
+/**
+ Sets the user's current consent state.
+ @param state A consent state object
+ */
+- (void)setConsentState:(MPConsentState *)state;
+/**
+ Gets the users consent state.
+ @returns The user's current consent state object
+ */
+- (nullable MPConsentState *)consentState;
 
 @end
 

@@ -188,7 +188,11 @@ typedef NS_ENUM(NSUInteger, MPKitInstance) {
     /** Kit code for Adobe */
     MPKitInstanceAdobe = 124,
     /** Kit code for Instabot */
-    MPKitInstanceInstabot = 123
+    MPKitInstanceInstabot = 123,
+    /** Kit code for Appsee */
+    MPKitInstanceAppsee = 126,
+    /** Kit code for Taplytics */
+    MPKitInstanceTaplytics = 129
 };
 
 /// Log Levels
@@ -267,6 +271,8 @@ typedef NS_ENUM(NSUInteger, MPIdentityErrorResponseCode) {
     MPIdentityErrorResponseCodeClientNoConnection = 3,
     /** Client side error: SSL connection failed to be established due to invalid server certificate. mParticle performs SSL pinning - you cannot use a proxy to read traffic. */
     MPIdentityErrorResponseCodeSSLError = 3,
+    /** Client side error: User has enabled OptOut. */
+    MPIdentityErrorResponseCodeOptOut = 4,
     /** HTTP Error 401: Unauthorized. Ensure that you've initialized the mParticle SDK with a valid workspace key and secret. */
     MPIdentityErrorResponseCodeUnauthorized = 401,
     /** HTTP Error 504: Identity request should be retried */
@@ -294,6 +300,12 @@ extern NSString * _Nonnull const mParticleSessionDidEndNotification;
  of this key is the id of the session.
  */
 extern NSString * _Nonnull const mParticleSessionId;
+
+/** This constant is used as key for the userInfo dictionary in the
+ mParticleSessionDidBeginNotification and mParticleSessionDidEndNotification notifications. The value
+ of this key is the UUID of the session.
+ */
+extern NSString * _Nonnull const mParticleSessionUUID;
 
 /** Posted immediately after the SDK becomes initialized.
  
