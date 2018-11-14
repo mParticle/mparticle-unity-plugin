@@ -215,7 +215,7 @@ extern "C" {
                 NSDictionary<NSString *, NSString *> *errorDictionary = @{@"CallbackUuid": taskCallbackId,
                                                                           @"ErrorCode": [NSString stringWithFormat: @"%ld", (long)error.code],
                                                                           @"Domain": error.domain,
-                                                                          @"UserInfo": jsonWithDictionary(@{@"Message": errorMessage,
+                                                                          @"UserInfo": jsonWithDictionary(@{@"Message": errorMessage ? errorMessage : @"",
                                                                                                             @"InnerError": innerError
                                                                                                             })};
                 UnitySendMessage("MParticle", "OnTaskFailure", toChar(jsonWithDictionary(errorDictionary)));
@@ -248,7 +248,7 @@ extern "C" {
                 NSDictionary<NSString *, NSString *> *errorDictionary = @{@"CallbackUuid": taskCallbackId,
                                                                           @"ErrorCode": [NSString stringWithFormat: @"%ld", (long)error.code],
                                                                           @"Domain": error.domain,
-                                                                          @"UserInfo": jsonWithDictionary(@{@"Message": errorMessage,
+                                                                          @"UserInfo": jsonWithDictionary(@{@"Message": errorMessage ? errorMessage : @"",
                                                                                                             @"InnerError": innerError
                                                                                                             })};
                 UnitySendMessage("MParticle", "OnTaskFailure", toChar(jsonWithDictionary(errorDictionary)));
@@ -282,7 +282,7 @@ extern "C" {
                 NSDictionary<NSString *, NSString *> *errorDictionary = @{@"CallbackUuid": taskCallbackId,
                                                                           @"ErrorCode": [NSString stringWithFormat: @"%ld", (long)error.code],
                                                                           @"Domain": error.domain,
-                                                                          @"UserInfo": jsonWithDictionary(@{@"Message": errorMessage,
+                                                                          @"UserInfo": jsonWithDictionary(@{@"Message": errorMessage ? errorMessage : @"",
                                                                                                             @"InnerError": innerError
                                                                                                             })};
                 UnitySendMessage("MParticle", "OnTaskFailure", toChar(jsonWithDictionary(errorDictionary)));
@@ -316,7 +316,7 @@ extern "C" {
                 NSDictionary<NSString *, NSString *> *errorDictionary = @{@"CallbackUuid": taskCallbackId,
                                                                           @"ErrorCode": [NSString stringWithFormat: @"%ld", (long)error.code],
                                                                           @"Domain": error.domain,
-                                                                          @"UserInfo": jsonWithDictionary(@{@"Message": errorMessage,
+                                                                          @"UserInfo": jsonWithDictionary(@{@"Message": errorMessage ? errorMessage : @"",
                                                                                                             @"InnerError": innerError
                                                                                                             })};
                 UnitySendMessage("MParticle", "OnTaskFailure", toChar(jsonWithDictionary(errorDictionary)));

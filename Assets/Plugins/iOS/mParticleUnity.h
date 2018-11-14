@@ -1,7 +1,7 @@
 #ifndef mParticle_mParticleUnity_h
 #define mParticle_mParticleUnity_h
 
-void initialize(const char *optionsJSON);
+void _Initialize(const char *optionsJSON);
 int _GetEnvironment(void *empty);
 void _SetOptOut(int optOut);
 void _SetUploadInterval(int uploadInterval);
@@ -21,10 +21,10 @@ char* _Identity_Login(const char *identityApiRequestJSON);
 char* _Identity_Logout(const char *identityApiRequestJSON);
 char* _Identity_Modify(const char *identityApiRequestJSON);
 
-void _Identity_AddIdentityStateListener(const char *callbackId);
-void _Identity_RemoveIdentityStateListener(const char *callbackId);
+void _Identity_AddIdentityStateListener(void);
+void _Identity_RemoveIdentityStateListener(void);
 
-char* _Identity_GetCurrentUser(void *empty);
+char* _Identity_GetCurrentUser(void);
 char* _Identity_GetUser(const char *mpid);
 
 char* _User_SetUserAttribute(const char *mpid, const char *key, const char *value);

@@ -15,7 +15,7 @@ namespace mParticle.android
 			this.onUserIdentifiedHandler = onUserIdentifiedHandler;
 		}
 
-		void OnUserIdentified(AndroidJavaObject user)
+		void onUserIdentified(AndroidJavaObject user)
 		{
 			onUserIdentifiedHandler.Invoke(new MParticleUserImpl(user));
 		}

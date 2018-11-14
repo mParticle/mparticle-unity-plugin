@@ -36,7 +36,7 @@ namespace mParticleiOs
 		private static extern void _SetOptOut(bool optOut);
 
 		[DllImport("__Internal")]
-		internal static extern string _Upload();
+		internal static extern void _Upload();
 
 		/*
 		 * Identity interface methods 
@@ -261,7 +261,7 @@ namespace mParticleiOs
 			}
 		}
 
-		public IMParticleTask<IdentityApiResult> Identify(IdentityApiRequest request = null)
+		public IMParticleTask<IdentityApiResult> Identify(IdentityApiRequest request)
 		{
 			string taskUuid = getRandomKey();
 			BaseTask baseTask = new BaseTask();

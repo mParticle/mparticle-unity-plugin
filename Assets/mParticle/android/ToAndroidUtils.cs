@@ -171,11 +171,14 @@ namespace mParticle.android
 		internal AndroidJavaObject ConvertToMpIdentifyRequest(IdentityApiRequest request)
 		{
 			AndroidJavaObject builder = new AndroidJavaClass("com.mparticle.identity.IdentityApiRequest").CallStatic<AndroidJavaObject>("withEmptyUser");
-			request.UserIdentities.ToList().ForEach(pair => builder.Call<AndroidJavaObject>("userIdentity", new object[]{ ConvertToMpUserIdentity(pair.Key), pair.Value }));
-			if (request.UserAliasHandler != null)
-			{
-				builder.Call<AndroidJavaObject>("userAliasHandler", new object[]{ new AndroidUserAliasHandler(request.UserAliasHandler) });
-			}
+            if (request != null)
+            {
+                request.UserIdentities.ToList().ForEach(pair => builder.Call<AndroidJavaObject>("userIdentity", new object[] { ConvertToMpUserIdentity(pair.Key), pair.Value }));
+                if (request.UserAliasHandler != null)
+                {
+                    builder.Call<AndroidJavaObject>("userAliasHandler", new object[] { new AndroidUserAliasHandler(request.UserAliasHandler) });
+                }
+            }
 			return builder.Call<AndroidJavaObject>("build");
 		}
 

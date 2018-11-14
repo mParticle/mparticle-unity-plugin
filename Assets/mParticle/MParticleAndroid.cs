@@ -255,15 +255,7 @@ namespace mParticleAndroid
 
 		public IMParticleTask<IdentityApiResult> Identify(IdentityApiRequest request = null)
 		{
-			AndroidJavaObject task;
-			if (request == null)
-			{
-				task = identityObject.Call<AndroidJavaObject>("identify");
-			}
-			else
-			{
-				task = identityObject.Call<AndroidJavaObject>("identify", new object[]{ toUtils.ConvertToMpIdentifyRequest(request) });
-			}
+			var task = identityObject.Call<AndroidJavaObject>("identify", new object[]{ toUtils.ConvertToMpIdentifyRequest(request) });
 			return new IdentifyTaskImpl(task);
 		}
 

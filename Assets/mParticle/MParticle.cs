@@ -266,15 +266,15 @@ namespace mParticle
 	[Serializable]
 	public sealed class LocationTracking
 	{
-		public Boolean Enabled { get; }
+        public Boolean Enabled;
 
-		public string Provider { get; }
+        public string Provider;
 
-		public long? MinTime { get; }
+        public long? MinTime;
 
-		public long? MinDistance { get; }
+        public long? MinDistance;
 
-		public long? MinAccuracy { get; }
+        public long? MinAccuracy;
 
 		public LocationTracking(Boolean enabled)
 		{
@@ -381,7 +381,7 @@ namespace mParticle
 
 		void RemoveIdentityStateListener(OnUserIdentified listener);
 
-		IMParticleTask<IdentityApiResult> Identify(IdentityApiRequest request = null);
+		IMParticleTask<IdentityApiResult> Identify(IdentityApiRequest request);
 
 		IMParticleTask<IdentityApiResult> Login(IdentityApiRequest request = null);
 
