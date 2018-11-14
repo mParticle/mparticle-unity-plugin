@@ -18,6 +18,8 @@ Download and import the plugin package to get started:
 
 You may need to add the mParticle Apple SDK as an embedded library in your xcode project build settings (under General -> Embedded Binaries). You may also need to build the "Device SDK" project from Unity (under Player Settings -> Target Device) first and then switch to "Simulator SDK" if you wish to run on the simulator.
 
+> Warning: the binary artifact for iOS contains simulator architectures (x86_64 and i386). These are provided to allow you to test on the simulator but must be stripped prior to submitting to the App Store or your app may be rejected. See this radar for more information: http://www.openradar.me/radar?id=6409498411401216
+
 #### Automated Xcode configuration
 
 `mParticle.unitypackage` includes `PostprocessBuildPlayer_mParticle` that automates several Xcode project configuration steps that are required to successfully build your application for the iOS platform. During the build process, Unity will locate and execute this script.
