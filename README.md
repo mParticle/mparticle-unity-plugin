@@ -65,7 +65,7 @@ namespace MyProject
          #endif
         }
         
-        new MParticleSDK().Initialize(new MParticleOptions()
+        new MParticle().Initialize(new MParticleOptions()
         {
         	ApiKey = apiKey,
         	ApiSecret = apiSecret
@@ -107,7 +107,7 @@ Using `MParticleOptions`, you have an option to override this default behavior, 
 Additionally, you may set a global OnUserIdentified delegate in `MParticleOptions`, which will be the most effective way to listen for any current `MParticleUser` changes that may take place as a result of the initial Identify request:
 
 ```cs
-	new MParticleSDK().Initialize(new MParticleOptions()
+	new MParticle().Initialize(new MParticleOptions()
         {
         	ApiKey = apiKey,
         	ApiSecret = apiSecret,
