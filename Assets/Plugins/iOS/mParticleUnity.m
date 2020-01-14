@@ -25,9 +25,14 @@ extern "C" {
         
         NSString *jsonString = [[NSString alloc] initWithCString:json encoding:NSUTF8StringEncoding];
         NSError *error = nil;
-        NSDictionary *dictionary = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding]
-                                                                   options:0
-                                                                     error:&error];
+        NSDictionary *dictionary = nil;
+        @try {
+            dictionary = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding]
+            options:0
+              error:&error];
+        } @catch (NSException *exception) {
+            NSLog(@"%@", exception);
+        }
         
         if (error) {
             dictionary = nil;
@@ -37,9 +42,14 @@ extern "C" {
     
     NSDictionary *dictionaryWithJSONString(NSString *jsonString) {
         NSError *error = nil;
-        NSDictionary *dictionary = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding]
-                                                                   options:0
-                                                                     error:&error];
+        NSDictionary *dictionary = nil;
+        @try {
+            dictionary = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding]
+            options:0
+              error:&error];
+        } @catch (NSException *exception) {
+            NSLog(@"%@", exception);
+        }
         
         if (error) {
             dictionary = nil;
@@ -49,9 +59,15 @@ extern "C" {
     
     NSString *jsonWithDictionary(NSDictionary *dictionary) {
         NSError *error;
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dictionary
-                                                           options:0
-                                                             error:&error];
+        NSData *jsonData = nil;
+        @try {
+            jsonData = [NSJSONSerialization dataWithJSONObject:dictionary
+            options:0
+              error:&error];
+        } @catch (NSException *exception) {
+            NSLog(@"%@", exception);
+        }
+        
         if (!jsonData) {
             NSLog(@"Error while writing NSDictionary to JSON: %@", error);
         }
@@ -83,7 +99,7 @@ extern "C" {
     }
     
     char *toChar(NSString *value) {
-        char *string = [value UTF8String];
+        char *string = (char *)[value UTF8String];
         if (string == nil)
             return NULL;
         
@@ -111,27 +127,27 @@ extern "C" {
         static dispatch_once_t onceToken;
         NSDictionary *optionsDictionary = dictionaryWithJSON(optionsJSON);
         MParticleOptions *options = [MPUnityConvert MParticleOptions:optionsDictionary];
-        dispatch_once(&onceToken, ^{
-            [[MParticle sharedInstance] startWithOptions:options];
-        });
         if ([[optionsDictionary allKeys]containsObject:@"UploadInterval"]) {
             int value = [optionsDictionary[@"UploadInterval"]intValue];
             if (value >= 0) {
-                [MParticle sharedInstance].uploadInterval = value;
+                options.uploadInterval = value;
             }
         }
         if ([[optionsDictionary allKeys]containsObject:@"SessionTimeout"]) {
             int value = [optionsDictionary[@"SessionTimeout"]intValue];
             if (value >= 0) {
-                [MParticle sharedInstance].sessionTimeout = value;
+                options.sessionTimeout = value;
             }
         }
         if ([[optionsDictionary allKeys]containsObject:@"LogLevel"]) {
             int logLevel = [optionsDictionary[@"LogLevel"]intValue];
             if (logLevel >= 0) {
-                [MParticle sharedInstance].logLevel = (MPILogLevel)logLevel;
+                options.logLevel = (MPILogLevel)logLevel;
             }
         }
+        dispatch_once(&onceToken, ^{
+            [[MParticle sharedInstance] startWithOptions:options];
+        });
     }
     
     void _SetOptOut(int optOut) {
@@ -145,7 +161,7 @@ extern "C" {
         if ([[json allKeys]containsObject:@"Info"]) {
             NSDictionary *eventInfo = json[@"Info"];
             if (eventInfo.count > 0) {
-                event.info = eventInfo;
+                event.customAttributes = eventInfo;
             }
         }
         NSNumber *duration = json[@"Duration"];
@@ -174,7 +190,7 @@ extern "C" {
         NSDictionary *json = dictionaryWithJSON(commerceEventJSON);
         
         MPCommerceEvent *commerceEvent = [MPUnityConvert MPCommerceEvent:json];
-        [[MParticle sharedInstance] logCommerceEvent:commerceEvent];
+        [[MParticle sharedInstance] logEvent:commerceEvent];
     }
     
     void _LogScreen(const char *screenName) {
@@ -188,14 +204,13 @@ extern "C" {
     }
     
     int _GetEnvironment() {
-        int environment = [MParticle sharedInstance].environment;
+        int environment = (int)[MParticle sharedInstance].environment;
         return environment;
     }
     
     void _SetUploadInterval(int uploadInterval) {
-        [[MParticle sharedInstance] setUploadInterval:uploadInterval];
+        NSLog(@"Warning: Upload interval could not be set, please specify the interval in SDK initialization options");
     }
-    
     
     char* _Identity_Identify(const char *identityApiRequestJSON) {
         NSDictionary *identityRequestDict = dictionaryWithJSON(identityApiRequestJSON);
@@ -341,9 +356,15 @@ extern "C" {
                                                                   usingBlock: ^ (NSNotification * note) {
                                                                       NSDictionary *values = @{@"Mpid": [((MParticleUser *) note.userInfo[mParticleUserKey]).userId stringValue]};
                                                                       NSError *error;
-                                                                      NSData *jsonData =[NSJSONSerialization dataWithJSONObject:values
-                                                                                                                        options:0
-                                                                                                                          error:&error];
+                                                                      NSData *jsonData = nil;
+                                                                      @try {
+                                                                          jsonData =[NSJSONSerialization dataWithJSONObject:values
+                                                                          options:0
+                                                                            error:&error];
+                                                                      } @catch (NSException *exception) {
+                                                                          NSLog(@"%@", exception);
+                                                                      }
+                                                                      
                                                                       NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                                                                       char *message = toChar(jsonString);
                                                                       UnitySendMessage("MParticle", "OnUserIdentified", message);
@@ -366,7 +387,7 @@ extern "C" {
             return toChar([currentUser.userId stringValue]);
         }
         @catch (NSException *ex) {
-            NSLog(ex);
+            NSLog(@"%@", ex);
             return toChar(@"0");
         }
     }
@@ -383,7 +404,7 @@ extern "C" {
             return toChar(@"true");
         }
         @catch (NSException *ex) {
-            NSLog(ex);
+            NSLog(@"%@", ex);
             return toChar(@"false");
         }
     }
@@ -396,7 +417,7 @@ extern "C" {
             return toChar(@"true");
         }
         @catch(NSException *ex) {
-            NSLog(ex);
+            NSLog(@"%@", ex);
             return toChar(@"false");
         }
     }
@@ -408,7 +429,7 @@ extern "C" {
             return toChar(@"true");
         }
         @catch (NSException *ex) {
-            NSLog(ex);
+            NSLog(@"%@", ex);
             return toChar(@"false");
         }
     }
@@ -420,7 +441,7 @@ extern "C" {
             return toChar(@"true");
         }
         @catch (NSException *ex) {
-            NSLog(ex);
+            NSLog(@"%@", ex);
             return toChar(@"false");
         }
     }
@@ -430,14 +451,20 @@ extern "C" {
             NSString *mpidString = [[NSString alloc] initWithCString:mpid encoding:NSUTF8StringEncoding];
             NSDictionary *userAttributes = [[[MParticle sharedInstance].identity getUser:(@([mpidString longLongValue]))] userAttributes];
             NSError *error;
-            NSData *jsonData =[NSJSONSerialization dataWithJSONObject:userAttributes
-                                                              options:0
-                                                                error:&error];
+            NSData *jsonData = nil;
+            @try {
+                jsonData =[NSJSONSerialization dataWithJSONObject:userAttributes
+                options:0
+                  error:&error];
+            } @catch (NSException *exception) {
+                NSLog(@"%@", exception);
+            }
+            
             NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
             return toChar(jsonString);
         }
         @catch (NSException *ex) {
-            NSLog(ex);
+            NSLog(@"%@", ex);
             return toChar(@"{}");
         }
     }
@@ -451,14 +478,19 @@ extern "C" {
             for (id key in userIdentities) {
                 [userIdentityStrings setValue:userIdentities[key] forKey:[key stringValue]];
             }
-            NSData *jsonData =[NSJSONSerialization dataWithJSONObject:userIdentityStrings
-                                                              options:0
-                                                                error:&error];
+            NSData *jsonData = nil;
+            @try {
+                jsonData =[NSJSONSerialization dataWithJSONObject:userIdentityStrings
+                options:0
+                  error:&error];
+            } @catch (NSException *exception) {
+                NSLog(@"%@", exception);
+            }
             NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
             return toChar(jsonString);
         }
         @catch (NSException *ex) {
-            NSLog(ex);
+            NSLog(@"%@", ex);
             return toChar(@"{}");
         }
     }
@@ -469,7 +501,7 @@ extern "C" {
             return toChar([currentMpid stringValue]);
         }
         @catch (NSException *ex) {
-            NSLog(ex);
+            NSLog(@"%@", ex);
             return toChar(@"false");
         }
     }
