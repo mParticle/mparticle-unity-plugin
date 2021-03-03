@@ -14,7 +14,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
     //
     // Private functions
     //
@@ -22,7 +22,7 @@ extern "C" {
         if (json == nil) {
             return nil;
         }
-        
+
         NSString *jsonString = [[NSString alloc] initWithCString:json encoding:NSUTF8StringEncoding];
         NSError *error = nil;
         NSDictionary *dictionary = nil;
@@ -33,13 +33,13 @@ extern "C" {
         } @catch (NSException *exception) {
             NSLog(@"%@", exception);
         }
-        
+
         if (error) {
             dictionary = nil;
         }
         return dictionary;
     }
-    
+
     NSDictionary *dictionaryWithJSONString(NSString *jsonString) {
         NSError *error = nil;
         NSDictionary *dictionary = nil;
@@ -50,13 +50,13 @@ extern "C" {
         } @catch (NSException *exception) {
             NSLog(@"%@", exception);
         }
-        
+
         if (error) {
             dictionary = nil;
         }
         return dictionary;
     }
-    
+
     NSString *jsonWithDictionary(NSDictionary *dictionary) {
         NSError *error;
         NSData *jsonData = nil;
@@ -67,48 +67,48 @@ extern "C" {
         } @catch (NSException *exception) {
             NSLog(@"%@", exception);
         }
-        
+
         if (!jsonData) {
             NSLog(@"Error while writing NSDictionary to JSON: %@", error);
         }
         return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     }
-    
+
     NSArray *arrayWithJSON(const char *json) {
         return (NSArray *)dictionaryWithJSON(json);
     }
-    
+
     NSString *stringWithCString(const char *cString) {
         if (cString == nil) {
             return nil;
         }
-        
+
         NSString *string = [[NSString alloc] initWithCString:cString encoding:NSUTF8StringEncoding];
         return string;
     }
-    
+
     char* charStringCopy(const char* value)
     {
         if (value == nil)
             return nil;
-        
+
         char* res = (char*)malloc(strlen(value) + 1);
         strcpy(res, value);
-        
+
         return res;
     }
-    
+
     char *toChar(NSString *value) {
         char *string = (char *)[value UTF8String];
         if (string == nil)
             return NULL;
-        
+
         char* copy = (char*)malloc(strlen(string) + 1);
         strcpy(copy, string);
-        
+
         return copy;
     }
-    
+
     NSString* toNSString(const char* value)
     {
         if (value != nil)
@@ -116,13 +116,13 @@ extern "C" {
         else
             return [NSString stringWithUTF8String:""];
     }
-    
+
     //
     // mParticle SDK Unity functions
     //
-    
+
     extern void UnitySendMessage(const char *, const char *, const char *);
-    
+
     void _Initialize (const char *optionsJSON) {
         static dispatch_once_t onceToken;
         NSDictionary *optionsDictionary = dictionaryWithJSON(optionsJSON);
@@ -149,12 +149,12 @@ extern "C" {
             [[MParticle sharedInstance] startWithOptions:options];
         });
     }
-    
+
     void _SetOptOut(int optOut) {
         [MParticle sharedInstance].optOut = optOut != 0;
     }
-    
-    
+
+
     void _LogEvent(const char *mpEventJSON) {
         NSDictionary *json = dictionaryWithJSON(mpEventJSON);
         MPEvent *event = [[MPEvent alloc] initWithName:json[@"EventName"] type:[json[@"EventType"]intValue]];
@@ -185,33 +185,33 @@ extern "C" {
         }
         [[MParticle sharedInstance] logEvent:event];
     }
-    
+
     void _LogCommerceEvent(const char *commerceEventJSON) {
         NSDictionary *json = dictionaryWithJSON(commerceEventJSON);
-        
+
         MPCommerceEvent *commerceEvent = [MPUnityConvert MPCommerceEvent:json];
         [[MParticle sharedInstance] logEvent:commerceEvent];
     }
-    
+
     void _LogScreen(const char *screenName) {
         MPEvent *event = [[MPEvent alloc] initWithName:stringWithCString(screenName) type:MPEventTypeNavigation];
         [[MParticle sharedInstance] logScreenEvent:event];
     }
-    
+
     void _LeaveBreadcrumb(const char *breadcrumbName) {
         NSString *breadcrumbNameString = stringWithCString(breadcrumbName);
         [[MParticle sharedInstance] leaveBreadcrumb:breadcrumbNameString];
     }
-    
+
     int _GetEnvironment() {
         int environment = (int)[MParticle sharedInstance].environment;
         return environment;
     }
-    
+
     void _SetUploadInterval(int uploadInterval) {
         NSLog(@"Warning: Upload interval could not be set, please specify the interval in SDK initialization options");
     }
-    
+
     char* _Identity_Identify(const char *identityApiRequestJSON) {
         NSDictionary *identityRequestDict = dictionaryWithJSON(identityApiRequestJSON);
         MPIdentityApiRequest *identityApiRequest = [MPUnityConvert MPIdentityApiRequest:identityRequestDict];
@@ -244,7 +244,7 @@ extern "C" {
         }];
         return toChar(taskCallbackId);
     }
-    
+
     char* _Identity_Login(const char *identityApiRequestJSON) {
         NSDictionary *identityRequestDict = dictionaryWithJSON(identityApiRequestJSON);
         MPIdentityApiRequest *identityApiRequest = [MPUnityConvert MPIdentityApiRequest:identityRequestDict];
@@ -277,12 +277,12 @@ extern "C" {
         }];
         return toChar(taskCallbackId);
     }
-    
+
     char* _Identity_Logout(const char *identityApiRequestJSON) {
         NSDictionary *identityRequestDict = dictionaryWithJSON(identityApiRequestJSON);
         MPIdentityApiRequest *identityApiRequest = [MPUnityConvert MPIdentityApiRequest:identityRequestDict];
         NSString *taskCallbackId = identityRequestDict[@"TaskUUID"];
-        
+
         [[[MParticle sharedInstance] identity]logout:identityApiRequest completion:^(MPIdentityApiResult * _Nullable apiResult, NSError * _Nullable error) {
             if (error != nil && taskCallbackId != nil) {
                 MPIdentityHTTPErrorResponse *errorResponse = error.userInfo[mParticleIdentityErrorKey];
@@ -311,12 +311,12 @@ extern "C" {
         }];
         return toChar(taskCallbackId);
     }
-    
+
     char* _Identity_Modify(const char *identityApiRequestJSON) {
         NSDictionary *identityRequestDict = dictionaryWithJSON(identityApiRequestJSON);
         MPIdentityApiRequest *identityApiRequest = [MPUnityConvert MPIdentityApiRequest:identityRequestDict];
         NSString *taskCallbackId = identityRequestDict[@"TaskUUID"];
-        
+
         [[[MParticle sharedInstance] identity]modify:identityApiRequest completion:^(MPIdentityApiResult * _Nullable apiResult, NSError * _Nullable error) {
             if (error != nil && taskCallbackId != nil) {
                 MPIdentityHTTPErrorResponse *errorResponse = error.userInfo[mParticleIdentityErrorKey];
@@ -345,7 +345,7 @@ extern "C" {
         }];
         return toChar(taskCallbackId);
     }
-    
+
     id token;
     int count = 0;
     void _Identity_AddIdentityStateListener(){
@@ -364,7 +364,7 @@ extern "C" {
                                                                       } @catch (NSException *exception) {
                                                                           NSLog(@"%@", exception);
                                                                       }
-                                                                      
+
                                                                       NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                                                                       char *message = toChar(jsonString);
                                                                       UnitySendMessage("MParticle", "OnUserIdentified", message);
@@ -372,7 +372,7 @@ extern "C" {
         }
         count++;
     }
-    
+
     void _Identity_RemoveIdentityStateListener(){
         count--;
         if (count == 0) {
@@ -380,7 +380,7 @@ extern "C" {
             token = nil;
         }
     }
-    
+
     char* _Identity_GetCurrentUser(){
         @try {
             MParticleUser *currentUser = [[[MParticle sharedInstance] identity] currentUser];
@@ -391,11 +391,11 @@ extern "C" {
             return toChar(@"0");
         }
     }
-    
+
     void _Upload() {
         [[MParticle sharedInstance] upload];
     }
-    
+
     char* _User_SetUserAttribute(const char *mpid, const char *key, const char *value) {
         @try {
             NSString *mpidString = [[NSString alloc] initWithCString:mpid encoding:NSUTF8StringEncoding];
@@ -408,7 +408,7 @@ extern "C" {
             return toChar(@"false");
         }
     }
-    
+
     char* _User_SetUserAttributes(const char *mpid, const char *attributesJSON) {
         @try {
             NSDictionary *attributes = dictionaryWithJSON(attributesJSON);
@@ -421,7 +421,7 @@ extern "C" {
             return toChar(@"false");
         }
     }
-    
+
     char* _User_SetUserTag(const char *mpid, const char *tag) {
         @try {
             NSString *mpidString = [[NSString alloc] initWithCString:mpid encoding:NSUTF8StringEncoding];
@@ -433,7 +433,7 @@ extern "C" {
             return toChar(@"false");
         }
     }
-    
+
     char* _User_RemoveUserAttribute(const char *mpid, const char *key) {
         @try {
             NSString *mpidString = [[NSString alloc] initWithCString:mpid encoding:NSUTF8StringEncoding];
@@ -445,7 +445,7 @@ extern "C" {
             return toChar(@"false");
         }
     }
-    
+
     char* _User_GetUserAttributes(const char *mpid) {
         @try {
             NSString *mpidString = [[NSString alloc] initWithCString:mpid encoding:NSUTF8StringEncoding];
@@ -459,7 +459,7 @@ extern "C" {
             } @catch (NSException *exception) {
                 NSLog(@"%@", exception);
             }
-            
+
             NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
             return toChar(jsonString);
         }
@@ -468,11 +468,11 @@ extern "C" {
             return toChar(@"{}");
         }
     }
-    
+
     char* _User_GetUserIdentities(const char *mpid) {
         @try {
             NSString *mpidString = [[NSString alloc] initWithCString:mpid encoding:NSUTF8StringEncoding];
-            NSDictionary *userIdentities = [[[MParticle sharedInstance].identity getUser:(@([mpidString longLongValue]))] userIdentities];
+            NSDictionary *userIdentities = [[[MParticle sharedInstance].identity getUser:(@([mpidString longLongValue]))] identities];
             NSError *error;
             NSDictionary *userIdentityStrings = [NSMutableDictionary new];
             for (id key in userIdentities) {
@@ -494,7 +494,7 @@ extern "C" {
             return toChar(@"{}");
         }
     }
-    
+
     char* _User_GetCurrentUserMpid(const char *mpid) {
         @try {
             NSNumber *currentMpid = [MParticle sharedInstance].identity.currentUser.userId;
@@ -505,7 +505,7 @@ extern "C" {
             return toChar(@"false");
         }
     }
-    
+
 #ifdef __cplusplus
 }
 #endif
@@ -530,16 +530,16 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
     if ([[identityRequestDict allKeys] containsObject:@"UserIdentities"]) {
         NSDictionary *identities = identityRequestDict[@"UserIdentities"];
         for (id key in identities) {
-            [identityRequest setUserIdentity:identities[key] identityType:(MPUserIdentity)[key integerValue]];
+            [identityRequest setIdentity:identities[key] identityType:(MPUserIdentity)[key integerValue]];
         }
     }
     if ([[identityRequestDict allKeys]containsObject:@"UserAliasUUID"]) {
-        identityRequest.onUserAlias = ^(MParticleUser * _Nonnull previousUser, MParticleUser * _Nonnull newUser) {
+        /*identityRequest.onUserAlias = ^(MParticleUser * _Nonnull previousUser, MParticleUser * _Nonnull newUser) {
             NSDictionary<NSString *, NSString *> *aliasDictionary = @{@"CallbackUuid": identityRequestDict[@"UserAliasUUID"],
                                                                       @"PreviousMpid": [previousUser.userId stringValue],
                                                                       @"NewMpid": [newUser.userId stringValue]};
             UnitySendMessage("MParticle", "OnUserAlias", toChar(jsonWithDictionary(aliasDictionary)));
-        };
+        };*/
     }
     return identityRequest;
 }
@@ -551,43 +551,43 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
         case MPUnityCommerceEventActionAddToCart:
             action = MPCommerceEventActionAddToCart;
             break;
-            
+
         case MPUnityCommerceEventActionRemoveFromCart:
             action = MPCommerceEventActionRemoveFromCart;
             break;
-            
+
         case MPUnityCommerceEventActionCheckout:
             action = MPCommerceEventActionCheckout;
             break;
-            
+
         case MPUnityCommerceEventActionCheckoutOptions:
             action = MPCommerceEventActionCheckoutOptions;
             break;
-            
+
         case MPUnityCommerceEventActionClick:
             action = MPCommerceEventActionClick;
             break;
-            
+
         case MPUnityCommerceEventActionViewDetail:
             action = MPCommerceEventActionViewDetail;
             break;
-            
+
         case MPUnityCommerceEventActionPurchase:
             action = MPCommerceEventActionPurchase;
             break;
-            
+
         case MPUnityCommerceEventActionRefund:
             action = MPCommerceEventActionRefund;
             break;
-            
+
         case MPUnityCommerceEventActionAddToWishList:
             action = MPCommerceEventActionAddToWishList;
             break;
-            
+
         case MPUnityCommerceEventActionRemoveFromWishlist:
             action = MPCommerceEventActionRemoveFromWishlist;
             break;
-            
+
         default:
             action = MPCommerceEventActionAddToCart;
             NSAssert(NO, @"Invalid commerce event action");
@@ -626,13 +626,13 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
     BOOL isPromotion =  [json[@"Promotions"] count] > 0;
     BOOL isImpression = [json[@"Impressions"] count] > 0;
     BOOL isValid = isProductAction || isPromotion || isImpression;
-    
+
     MPCommerceEvent *commerceEvent = nil;
     if (!isValid) {
         NSAssert(NO, @"Invalid commerce event");
         return commerceEvent;
     }
-    
+
     if (isProductAction) {
         MPCommerceEventAction action = [MPUnityConvert MPCommerceEventAction:json[@"ProductAction"]];
         commerceEvent = [[MPCommerceEvent alloc] initWithAction:action];
@@ -644,7 +644,7 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
     else {
         commerceEvent = [[MPCommerceEvent alloc] initWithImpressionName:nil product:nil];
     }
-    
+
     commerceEvent.checkoutOptions = json[@"CheckoutOptions"];
     commerceEvent.currency = json[@"Currency"];
     commerceEvent.productListName = json[@"ProductActionListName"];
@@ -655,7 +655,7 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
     }
     commerceEvent.checkoutStep = [json[@"CheckoutStep"] intValue];
     commerceEvent.nonInteractive = [json[@"NonInteractive"] boolValue];
-    
+
     NSMutableArray *products = [NSMutableArray array];
     NSArray *jsonProducts = json[@"Products"];
     if (jsonProducts != nil && [jsonProducts count] > 0) {
@@ -682,7 +682,7 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
             }
         }];
     }
-    
+
     return commerceEvent;
 }
 
@@ -694,7 +694,7 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
         MPPromotion *promotion = [MPUnityConvert MPPromotion:obj];
         [promotionContainer addPromotion:promotion];
     }];
-    
+
     return promotionContainer;
 }
 
@@ -731,13 +731,13 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
         product.position = [json[@"Position"] intValue];
     }
     product.quantity = json[@"Quantity"] ?: @1;
-    
+
     NSDictionary *jsonAttributes = json[@"CustomAttributes"] ?: @{};
     for (NSString *key in jsonAttributes) {
         NSString *value = jsonAttributes[key];
         [product setObject:value forKeyedSubscript:key];
     }
-    
+
     return product;
 }
 @end
