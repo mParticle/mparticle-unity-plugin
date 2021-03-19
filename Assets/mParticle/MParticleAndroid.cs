@@ -215,6 +215,11 @@ namespace mParticleAndroid
 			);
 		}
 
+		public void SetATTStatus(ATTAuthStatus status, double timestamp)
+		{
+		// Unnecessary for Android devices
+		}
+
 		public void Upload()
 		{
 			mp.Call("upload");

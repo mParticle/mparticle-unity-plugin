@@ -198,6 +198,10 @@ extern "C" {
         [[MParticle sharedInstance] logScreenEvent:event];
     }
     
+    void _SetATTStatus(int status, double timestamp) {
+        [[MParticle sharedInstance] setATTStatus:status withATTStatusTimestampMillis:timestamp];
+    }
+    
     void _LeaveBreadcrumb(const char *breadcrumbName) {
         NSString *breadcrumbNameString = stringWithCString(breadcrumbName);
         [[MParticle sharedInstance] leaveBreadcrumb:breadcrumbNameString];

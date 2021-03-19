@@ -1,5 +1,3 @@
-#import "MPCart.h"
-#import "MPCommerce.h"
 #import "MPCommerceEvent.h"
 #import "MPCommerceEventInstruction.h"
 #import "MPCommerceEvent+Dictionary.h"
@@ -22,6 +20,7 @@
 #import "MPKitAPI.h"
 #import "MPConsentState.h"
 #import "MPGDPRConsent.h"
+#import "MPCCPAConsent.h"
 #import "MPListenerController.h"
 #import <UIKit/UIKit.h>
 
@@ -78,12 +77,82 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface MPNetworkOptions : NSObject
 
+/**
+Allows you to override the default configuration host.
+*/
 @property (nonatomic) NSString *configHost;
+/**
+Defaults to false. If set true the configHost above with overwrite the subdirectory of the URL in addition to the host.
+*/
+@property (nonatomic) BOOL overridesConfigSubdirectory;
+
+/**
+Allows you to override the default event host.
+*/
 @property (nonatomic) NSString *eventsHost;
+/**
+Defaults to false. If set true the eventsHost above with overwrite the subdirectory of the URL in addition to the host.
+*/
+@property (nonatomic) BOOL overridesEventsSubdirectory;
+
+/**
+Allows you to override the default identity host.
+*/
 @property (nonatomic) NSString *identityHost;
+/**
+Defaults to false. If set true the identityHost above with overwrite the subdirectory of the URL in addition to the host.
+*/
+@property (nonatomic) BOOL overridesIdentitySubdirectory;
+
+/**
+Allows you to override the default alias host.
+*/
+@property (nonatomic) NSString *aliasHost;
+/**
+Defaults to false. If set true the aliasHost above with overwrite the subdirectory of the URL in addition to the host.
+*/
+@property (nonatomic) BOOL overridesAliasSubdirectory;
+
 @property (nonatomic) NSArray<NSData *> *certificates;
 
 @property (nonatomic) BOOL pinningDisabledInDevelopment;
+/**
+Defaults to false. Prevents the eventsHost above from overwriting the alias endpoint.
+*/
+@property (nonatomic) BOOL eventsOnly;
+
+@end
+
+/**
+ Planning settings for kit blocking
+ */
+@interface MPDataPlanOptions : NSObject
+/**
+ Data Plan.
+ 
+ Data plan value (JSON schema) for blocking data to kits.
+ */
+@property (nonatomic, strong, readwrite, nullable) NSDictionary *dataPlan;
+
+/**
+ Whether to block unplanned events from being sent to kits, default false
+ */
+@property (nonatomic, assign, readwrite) BOOL blockEvents;
+
+/**
+ Whether to block unplanned event attributes from being sent to kits, default false
+ */
+@property (nonatomic, assign, readwrite) BOOL blockEventAttributes;
+
+/**
+ Whether to block unplanned user attributes from being sent to kits, default false
+ */
+@property (nonatomic, assign, readwrite) BOOL blockUserAttributes;
+
+/**
+ Whether to block unplanned user identities from being sent to kits, default false
+ */
+@property (nonatomic, assign, readwrite) BOOL blockUserIdentities;
 
 @end
 
@@ -151,12 +220,30 @@ NS_ASSUME_NONNULL_BEGIN
 /*
  Whether the SDK should automatically attempt to measure sessions. Ignored in App Extensions.
  
- If set to YES, the SDK will start a timer when the app enters the background and will end the session if a
+ If set to YES (the default), the SDK will start a timer when the app enters the background and will end the session if a
  user leaves the app for a configurable number of seconds without bringing it back to foreground.
  
  Note that the above behavior does not apply to apps with long-running background sessions.
+ 
+ Also note that the SDK will still start a session automatically when startWithOptions is called, even if automaticSessionTracking is disabled, unless `shouldBeginSession` is also set to NO.
+ @see shouldBeginSession
  */
 @property (nonatomic, unsafe_unretained, readwrite) BOOL automaticSessionTracking;
+
+/*
+ Whether the SDK should start a session on SDK init. (Defaults to YES.)
+ 
+ The behavior of this flag does not change depending on whether automatic session tracking is enabled.
+ 
+ If set to YES, the SDK will start session immediately when you call `startWithOptions:`
+ If set to NO, the SDK will not create a session as as result of `startWithOptions:` being called.
+ 
+ If your application can be launched into the background, you will want to set this to NO in that situation to avoid spurious sessions that do not correspond to user activity.
+ You can detect being launched into the background from within `didFinishLaunchingWithOptions:` based on whether `launchOptions[UIApplicationLaunchOptionsRemoteNotificationsKey]["content-available"]` exists and is set to the `NSNumber` value `@1`.
+ 
+ Note that even if this flag is set to NO, the SDK will still create sessions as a result of other application lifecycle events, unless `automaticSessionTracking` is also set to NO.
+ */
+@property (nonatomic, unsafe_unretained, readwrite) BOOL shouldBeginSession;
 
 /*
  The browser user agent.
@@ -247,6 +334,25 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, readwrite, nullable) NSNumber *dataPlanVersion;
 
 /**
+ Data Plan Options.
+ 
+ Settings for blocking data to kits
+ */
+@property (nonatomic, strong, readwrite, nullable) MPDataPlanOptions *dataPlanOptions;
+
+/**
+ Set the App Tracking Transparency Authorization Status upon starting the SDK.
+ Only sets a new state if it has changed.
+ */
+@property (nonatomic, strong, readwrite, nullable) NSNumber *attStatus;
+
+/**
+ Set the App Tracking Transparency Authorization Status timestamp upon starting the SDK.
+ Requires @attStatus to be set and is only set if the authorization state is different from the stored state.
+ */
+@property (nonatomic, strong, readwrite, nullable) NSNumber *attStatusTimestampMillis;
+
+/**
  Identify callback.
  
  This will be called when an identify request completes.
@@ -285,18 +391,11 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark Properties
 
 /**
- This property is an instance of MPCommerce. It is used to execute transactional operations on the shopping cart.
- @see MPCommerce
- @see MPCart
- */
-@property (nonatomic, strong, readonly) MPCommerce *commerce;
-
-/**
  This property is an instance of MPIdentityApi. It allows tracking login, logout, and identity changes.
  @see MPIdentityApi
  @see MParticleUser
  */
-@property (nonatomic, strong, readonly) MPIdentityApi *identity;
+@property (nonatomic, strong, readonly) MPIdentityApi * identity;
 
 /**
  If set to YES development logs will be output to the
@@ -345,8 +444,15 @@ NS_ASSUME_NONNULL_BEGIN
  A flag indicating whether the mParticle Apple SDK is using
  automated Session tracking.
  @see MParticleOptions
+ @see shouldBeginSession
  */
 @property (nonatomic, unsafe_unretained, readonly) BOOL automaticSessionTracking;
+
+/**
+ A flag indicating whether the SDK should start a session on SDK init. (Defaults to YES.)
+ @see MParticleOptions
+ */
+@property (nonatomic, unsafe_unretained, readwrite) BOOL shouldBeginSession;
 
 /**
  The current session. You can access properties for Session ID and UUID.
@@ -408,12 +514,26 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property (nonatomic, unsafe_unretained, readonly) NSTimeInterval uploadInterval;
 
-
-
 /**
  mParticle Apple SDK version
  */
 @property (nonatomic, strong, readonly) NSString *version;
+
+/**
+ Data plan id
+ */
+@property (nonatomic, strong, readonly) NSString *dataPlanId;
+
+/**
+ Data plan version
+ */
+@property (nonatomic, strong, readonly) NSNumber *dataPlanVersion;
+
+/**
+ Sets data plan options for kit blocking
+ @see MParticleOptions
+ */
+@property (nonatomic, readonly) MPDataPlanOptions *dataPlanOptions;
 
 #pragma mark - Initialization
 
@@ -588,6 +708,15 @@ NS_ASSUME_NONNULL_BEGIN
  @see logScreenEvent:
  */
 - (void)logScreen:(NSString *)screenName eventInfo:(nullable NSDictionary<NSString *, id> *)eventInfo;
+
+/**
+ Sets the ATT Authorization state with the supplied timestamp, or uses the current time if none is supplied.
+ @param status The authorization state of ATT, determines whether the user has approved access to app-related data that can be used for tracking the user or the device.
+ @param attStatusTimestampMillis The time at which the authorization status change. If not supplied, current time will be used.
+ @see MPCurrentEpochInMilliseconds - Please provide the timestamp in milliseconds
+ @see MPIdentityIOSAdvertiserId
+ */
+- (void)setATTStatus:(MPATTAuthorizationStatus)status withATTStatusTimestampMillis:(nullable NSNumber *)attStatusTimestampMillis API_AVAILABLE(ios(14));
 
 #pragma mark - Attribution
 /**
@@ -929,7 +1058,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Logs a Notification event for a notification that has been reviewed and acted upon. This is a convenience method for manually logging Notification events; Set trackNotifications to false on MParticleOptions to disable automatic tracking of Notifications and only set Notification manually:
  */
-- (void)logNotificationOpenedWithUserInfo:(nonnull NSDictionary *)userInfo;
+- (void)logNotificationOpenedWithUserInfo:(nonnull NSDictionary *)userInfo andActionIdentifier:(nullable NSString *)actionIdentifier;
 
 #endif
 

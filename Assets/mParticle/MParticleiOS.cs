@@ -27,6 +27,9 @@ namespace mParticleiOs
 		private static extern void _LogScreen(string screenName);
 
 		[DllImport("__Internal")]
+		private static extern void _SetATTStatus(ATTAuthStatus status, double timestamp);
+
+		[DllImport("__Internal")]
 		private static extern void _LeaveBreadcrumb(string breadcrumbName);
 
 		[DllImport("__Internal")]
@@ -171,6 +174,16 @@ namespace mParticleiOs
 			}
 				
 			_LogScreen(screenName);
+		}
+
+		public void SetATTStatus(ATTAuthStatus status, double timestamp)
+		{
+			if (Application.platform == RuntimePlatform.OSXEditor)
+			{
+				return;
+			}
+				
+			_SetATTStatus(status, timestamp);
 		}
 
 		public void LeaveBreadcrumb(string breadcrumbName)

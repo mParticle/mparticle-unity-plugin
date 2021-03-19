@@ -182,7 +182,20 @@ namespace mParticle
 		FacebookCustomAudienceId,
 		Other2,
 		Other3,
-		Other4}
+		Other4,
+		Other5,
+		Other6,
+		Other7,
+		Other8,
+		Other9,
+		Other10,
+		MobileNumber,
+		PhoneNumber2,
+		PhoneNumber3,
+		IOSAdvertiserId,
+		IOSVendorId,
+		PushToken,
+		DeviceApplicationStamp}
 
 	;
 
@@ -220,6 +233,15 @@ namespace mParticle
 	{
 		View = 0,
 		Click}
+
+	;
+
+	public enum ATTAuthStatus
+	{
+		NotDetermined = 0,
+		Restricted,
+		Denied,
+		Authorized}
 
 	;
 
@@ -434,6 +456,8 @@ namespace mParticle
 
 		void LogScreen(string screenName);
 
+		void SetATTStatus(ATTAuthStatus status, double timestamp);
+
 		void LeaveBreadcrumb(string breadcrumbName);
 
 		void SetOptOut(bool optOut);
@@ -521,6 +545,16 @@ namespace mParticle
 		public void LogScreen(string screenName)
 		{
 			mParticleInstance.LogScreen(screenName);
+		}
+
+		/// <summary>
+		/// Set the ATT status for iOS devices.
+		/// </summary>
+		/// <param name="status">The App Tracking Transparency Status of the iOS device (required not null)</param>
+		/// <param name="timestamp">An optional timestamp (in ms) for when this status was set.</param>
+		public void SetATTStatus(ATTAuthStatus status, double timestamp)
+		{
+			mParticleInstance.SetATTStatus(status, timestamp);
 		}
 
 		/// <summary>
