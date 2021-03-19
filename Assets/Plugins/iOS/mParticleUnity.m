@@ -476,11 +476,11 @@ extern "C" {
     char* _User_GetUserIdentities(const char *mpid) {
         @try {
             NSString *mpidString = [[NSString alloc] initWithCString:mpid encoding:NSUTF8StringEncoding];
-            NSDictionary *userIdentities = [[[MParticle sharedInstance].identity getUser:(@([mpidString longLongValue]))] userIdentities];
+            NSDictionary *identities = [[[MParticle sharedInstance].identity getUser:(@([mpidString longLongValue]))] identities];
             NSError *error;
             NSDictionary *userIdentityStrings = [NSMutableDictionary new];
-            for (id key in userIdentities) {
-                [userIdentityStrings setValue:userIdentities[key] forKey:[key stringValue]];
+            for (id key in identities) {
+                [userIdentityStrings setValue:identities[key] forKey:[key stringValue]];
             }
             NSData *jsonData = nil;
             @try {
@@ -534,7 +534,7 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
     if ([[identityRequestDict allKeys] containsObject:@"UserIdentities"]) {
         NSDictionary *identities = identityRequestDict[@"UserIdentities"];
         for (id key in identities) {
-            [identityRequest setUserIdentity:identities[key] identityType:(MPUserIdentity)[key integerValue]];
+            [identityRequest setIdentity:identities[key] identityType:(MPIdentity)[key integerValue]];
         }
     }
     if ([[identityRequestDict allKeys]containsObject:@"UserAliasUUID"]) {
