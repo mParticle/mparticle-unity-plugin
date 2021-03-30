@@ -183,7 +183,7 @@ namespace mParticleiOs
 				return;
 			}
 				
-			_SetATTStatus(status, timestamp);
+			_SetATTStatus(status, fooo);
 		}
 
 		public void LeaveBreadcrumb(string breadcrumbName)
