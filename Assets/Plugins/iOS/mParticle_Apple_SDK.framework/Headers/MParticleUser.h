@@ -6,7 +6,6 @@
 #import <Foundation/Foundation.h>
 #import "MPUserSegments.h"
 #import "MPEnums.h"
-#import "MPCart.h"
 #import "MPConsentState.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -37,23 +36,17 @@ NS_ASSUME_NONNULL_BEGIN
 @property(readonly) BOOL isLoggedIn;
 
 /**
- Gets current user identities (readonly)
- @returns A dictionary containing the collection of user identities
- @see MPUserIdentity
+ Gets current identities (readonly)
+ @returns A dictionary containing the collection of all identities including device identities
+ @see MPIdentity
  */
-@property (readonly, strong, nonnull) NSDictionary<NSNumber *, NSString *> *userIdentities;
+@property (readonly, strong, nonnull) NSDictionary<NSNumber *, NSString *> *identities;
 
 /**
  Gets/sets all user attributes.
  @returns A dictionary containing the collection of user attributes.
  */
 @property (readwrite, strong, nonnull) NSDictionary<NSString *, id> *userAttributes;
-
-/**
- Gets the user's shopping cart
- @returns An MPCart object
- */
-@property (readonly, strong, nonnull) MPCart *cart DEPRECATED_MSG_ATTRIBUTE("The SDK no longer supports tracking the contents of your Cart. Please implement your own cart functionality and send us CommerceEvents as it is updated.");
 
 /**
  Increments the value of a user attribute by the provided amount. If the key does not
@@ -106,7 +99,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param endpointId The endpoint id
  @param completionHandler A block to be called when the results are available. The user segments array is passed to this block
  */
-- (void)userSegments:(NSTimeInterval)timeout endpointId:(NSString *)endpointId completionHandler:(MPUserSegmentsHandler)completionHandler __attribute__((deprecated("")));
+- (void)userSegments:(NSTimeInterval)timeout endpointId:(NSString *)endpointId completionHandler:(MPUserSegmentsHandler)completionHandler __attribute__((deprecated("not available")));
 
 #pragma mark - Consent State
 /**

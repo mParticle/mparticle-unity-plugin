@@ -9,6 +9,7 @@ void _SetUploadInterval(int uploadInterval);
 void _LogEvent(const char *mpEvent);
 void _LogCommerceEvent(const char *commerceEventJSON);
 void _LogScreen(const char *screenName);
+void _SetATTStatus(int status, double timestamp)
 
 void _LeaveBreadcrumb(const char *breadcrumbName);
 

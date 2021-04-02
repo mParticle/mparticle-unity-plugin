@@ -4,7 +4,7 @@
 
 project_dir=${PWD}
 
-/Applications/Unity/Unity.app/Contents/MacOS/Unity \
+/Applications/Unity/Hub/Editor/2020.3.0f1/Unity.app/Contents/MacOS/Unity \
     -projectPath "${PWD}" \
     -logFile \
     -exportPackage Assets/mParticle/MParticle.cs \

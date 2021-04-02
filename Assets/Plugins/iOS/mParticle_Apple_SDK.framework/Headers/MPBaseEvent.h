@@ -3,7 +3,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface MPBaseEvent : NSObject <NSCopying> 
+@interface MPBaseEvent : NSObject <NSCopying>
+
+- (NSString *) print;
 
 /**
  The timestamp when the event was created. Is non null but can be set by the client
@@ -36,6 +38,12 @@ NS_ASSUME_NONNULL_BEGIN
  Custom flags are a collection of attributes used to trigger functionality in specific integrations. By default, most integrations will ignore custom flags. Reference the documentation for your integrations to see if they make use of custom flags.
  */
 @property (nonatomic, strong, readonly, nullable) NSMutableDictionary<NSString *, __kindof NSArray<NSString *> *> *customFlags;
+
+/**
+ Whether the SDK should automatically begin a session if one does not already exist (defaults to YES).
+ This should typically be set to NO if the app is launched from a background notification.
+ */
+@property (nonatomic) BOOL shouldBeginSession;
 
 /**
  A Dictionary representation of this instance for uploading the event
