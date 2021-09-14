@@ -111,6 +111,10 @@ namespace mParticleAndroid
 			{
 				builder.Call<AndroidJavaObject>("nonInteraction", (bool)commerceEvent.NonInteractive);
 			}
+			if (commerceEvent.ShouldUploadEvent.HasValue)
+			{
+				builder.Call<AndroidJavaObject>("shouldUploadEvent", (bool)commerceEvent.ShouldUploadEvent);
+			}
 
 			if (commerceEvent.Products != null)
 			{
@@ -192,6 +196,10 @@ namespace mParticleAndroid
 			if (mpEvent.StartTime.HasValue)
 			{
 				builder.Call<AndroidJavaObject>("startTime", new object[]{ mpEvent.StartTime.Value });
+			}
+			if (mpEvent.ShouldUploadEvent.HasValue)
+			{
+				builder.Call<AndroidJavaObject>("shouldUploadEvent", (bool)mpEvent.ShouldUploadEvent);
 			}
 			var mpEventAndroidObject = builder.Call<AndroidJavaObject>("build");
 			mp.Call("logEvent", new object[]{ mpEventAndroidObject });
