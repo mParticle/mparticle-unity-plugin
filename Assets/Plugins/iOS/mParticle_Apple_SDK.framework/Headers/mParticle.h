@@ -22,6 +22,7 @@
 #import "MPGDPRConsent.h"
 #import "MPCCPAConsent.h"
 #import "MPListenerController.h"
+#import "MPForwardRecord.h"
 #import <UIKit/UIKit.h>
 
 #if TARGET_OS_IOS == 1
@@ -166,7 +167,7 @@ Defaults to false. Prevents the eventsHost above from overwriting the alias endp
  
  These values can be retrieved from your App's dashboard within the mParticle platform.
  */
-+ (MParticleOptions*)optionsWithKey:(NSString *)apiKey secret:(NSString *)secret;
++ (instancetype)optionsWithKey:(NSString *)apiKey secret:(NSString *)secret;
 
 /*
  App key. mParticle uses this to attribute incoming data to your app's acccount/workspace/platform.
@@ -727,15 +728,6 @@ Defaults to false. Prevents the eventsHost above from overwriting the alias endp
 - (nullable NSDictionary<NSNumber *, MPAttributionResult *> *)attributionInfo;
 
 #pragma mark - Error, Exception, and Crash Handling
-/**
- Enables mParticle exception handling to automatically log events on uncaught exceptions.
- */
-- (void)beginUncaughtExceptionLogging;
-
-/**
- Disables mParticle automatic exception handling.
- */
-- (void)endUncaughtExceptionLogging;
 
 /**
  Leaves a breadcrumb. Breadcrumbs are send together with crash reports to help with debugging.
@@ -778,6 +770,16 @@ Defaults to false. Prevents the eventsHost above from overwriting the alias endp
  @param topmostContext The topmost context of the app, typically the topmost view controller
  */
 - (void)logException:(NSException *)exception topmostContext:(nullable id)topmostContext;
+
+/**
+ Logs a crash report with additional exception information.
+ @param message An error message to associate with the crash which occurred
+ @param stackTrace The stack trace from the crash which occurred
+ @param plCrashReport Plausible Labs crash report file (required not nil)
+ */
+- (void)logCrash:(nullable NSString *)message
+      stackTrace:(nullable NSString *)stackTrace
+   plCrashReport:(NSString *)plCrashReport;
 
 #pragma mark - eCommerce Transactions
 /**

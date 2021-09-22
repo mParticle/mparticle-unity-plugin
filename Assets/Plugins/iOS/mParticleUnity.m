@@ -183,6 +183,9 @@ extern "C" {
                              withKey:key];
             }
         }
+        if (json[@"shouldUploadEvent"] != nil) {
+            event.shouldUploadEvent = [json[@"shouldUploadEvent"] boolValue];
+        }
         [[MParticle sharedInstance] logEvent:event];
     }
     
@@ -659,6 +662,9 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
     }
     commerceEvent.checkoutStep = [json[@"CheckoutStep"] intValue];
     commerceEvent.nonInteractive = [json[@"NonInteractive"] boolValue];
+    if (json[@"shouldUploadEvent"] != nil) {
+        commerceEvent.shouldUploadEvent = [json[@"shouldUploadEvent"] boolValue];
+    }
     
     NSMutableArray *products = [NSMutableArray array];
     NSArray *jsonProducts = json[@"Products"];

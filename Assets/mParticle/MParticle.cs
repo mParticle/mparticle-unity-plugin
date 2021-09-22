@@ -30,6 +30,7 @@ namespace mParticle
 		public string ProductActionListSource;
 		public int? CheckoutStep;
 		public bool? NonInteractive;
+		public bool? ShouldUploadEvent;
 
 		public CommerceEvent(ProductAction productAction, Product[] products, TransactionAttributes transactionAttributes = null)
 		{
@@ -61,6 +62,7 @@ namespace mParticle
 		public Double? StartTime;
 		public Double? EndTime;
 		public IDictionary<string, List<string>> CustomFlags;
+		public bool? ShouldUploadEvent;
 
 		public MPEvent(string eventName, EventType eventType = EventType.Other)
 		{
