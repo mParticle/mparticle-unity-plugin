@@ -191,7 +191,7 @@ namespace mParticle.android
 				{
 					map.Call<string>(
 						"put", 
-						new string[]{ entry.Key, entry.Value }
+						new object[]{ entry.Key, entry.Value }
 					);
 				}
 			}
