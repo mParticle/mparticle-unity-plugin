@@ -1,12 +1,9 @@
 name: "Update SDKs"
 
 on: 
+  schedule:
+    - cron:  '00 15 * * 1'
   workflow_dispatch:
-    inputs:
-      branch-name:
-        description: "Output branch name"
-        required: true
-        default: "update-android-sdk"
 
 jobs:
   update-android-sdk:
@@ -41,7 +38,6 @@ jobs:
           artifactId: 'android-core'
           version: ${{steps.latest-version.outputs.result}}
           extension: 'aar'
-          # https://repo1.maven.org/maven2/com/mparticle/android-core/5.37.0/android-core-5.37.0.jar
       - name: "Output file path in container"
         run: |
           jar xf ${{steps.download-maven-artifact.outputs.file}} classes.jar
@@ -49,4 +45,33 @@ jobs:
       - name: "Commit Changes"
         run: |
           git add Assets/Plugins/Android
-          git diff-index --quiet HEAD || git commit -m "update: mParticle Android SDK to version ${{steps.latest-version.outputs.result}}"; git push origin HEAD:${{github.event.inputs.branch-name}}
+          git diff-index --quiet HEAD || git commit -m "update: mParticle Android SDK to version ${{steps.latest-version.outputs.result}}"; git push -f origin HEAD:update-sdks
+  update-apple-sdk:
+    needs: update-android-sdk
+    name: "Update iOS SDK"
+    runs-on: macos-latest
+    env:
+      GIT_AUTHOR_NAME: mparticle-bot
+      GIT_AUTHOR_EMAIL: developers@mparticle.com
+      GIT_COMMITTER_NAME: mparticle-bot
+      GIT_COMMITTER_EMAIL: developers@mparticle.com
+      GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          ref: update-sdks
+          fetch-depth: 0
+          lfs: true
+      - name: "Create Cartfile"
+        run: echo "github \"mparticle/mparticle-apple-sdk\"" > Cartfile
+      - name: "Carthage Install"
+        run: carthage update
+      - name: "Move mParticle-apple-sdk.framework"
+        run: |
+          rm -rf Assets/Plugins/iOS/mParticle_Apple_SDK.framework; 
+          mv -f carthage/Build/iOS/mParticle_Apple_SDK.framework Assets/Plugins/iOS/
+      - name: "Commit Changes"
+        run: |
+          git add Assets/Plugins/iOS
+          git diff-index --quiet HEAD || git commit -m "update: mParticle Apple SDK to version $(cut -d'"' -f2 <<< `carthage checkout`)"; git push origin HEAD:update-sdks
