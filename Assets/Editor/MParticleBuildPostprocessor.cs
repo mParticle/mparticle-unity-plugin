@@ -1,14 +1,19 @@
+
 using UnityEditor;
 using UnityEditor.Callbacks;
+#if UNITY_IOS
 using UnityEditor.iOS.Xcode;
 using UnityEditor.iOS.Xcode.Extensions;
+#endif
 
-namespace mParticle {
+namespace mParticle
+{
     public class BuildPostProcessor
     {
         [PostProcessBuild]
         public static void OnPostProcessBuild(BuildTarget target, string path)
         {
+            #if UNITY_IOS
             if (target == BuildTarget.iOS)
             {
                 // Get project into C#
@@ -29,6 +34,7 @@ namespace mParticle {
                 // Overwrite
                 project.WriteToFile(projectPath);
             }
+            #endif
         }
     }
 }
