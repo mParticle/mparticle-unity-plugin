@@ -29,6 +29,13 @@ jobs:
           ref: main
           fetch-depth: 0
           lfs: true
+      - name: "Import GPG Key"
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: "Download Maven Artifact"
         id: download-maven-artifact
         uses: clausnz/github-action-download-maven-artifact@master
@@ -65,6 +72,13 @@ jobs:
           ref: chore/update-sdks
           fetch-depth: 0
           lfs: true
+      - name: "Import GPG Key"
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: "Create Cartfile"
         run: echo "github \"mparticle/mparticle-apple-sdk\"" > Cartfile
       - name: "Carthage Install"
