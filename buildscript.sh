@@ -31,5 +31,5 @@ project_dir=${PWD}
                    Assets/Plugins/iOS/MParticleUnity.h \
                    Assets/Plugins/iOS/MParticleUnity.m \
                    Assets/Plugins/iOS/mParticle_Apple_SDK.framework \
-                   Assets/Editor/PostprocessBuildPlayer_mParticle \
+                   Assets/Editor/MParticleBuildPostprocessor.cs \
     mParticle.unitypackage -nographics -batchmode -quit;
