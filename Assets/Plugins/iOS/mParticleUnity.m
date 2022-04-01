@@ -202,7 +202,7 @@ extern "C" {
     }
     
     void _SetATTStatus(int status, double timestamp) {
-        [[MParticle sharedInstance] setATTStatus:status withATTStatusTimestampMillis:timestamp];
+        [[MParticle sharedInstance] setATTStatus:status withATTStatusTimestampMillis:@(timestamp)];
     }
     
     void _LeaveBreadcrumb(const char *breadcrumbName) {
@@ -539,14 +539,6 @@ typedef NS_ENUM(NSUInteger, MPUnityCommerceEventAction) {
         for (id key in identities) {
             [identityRequest setIdentity:identities[key] identityType:(MPIdentity)[key integerValue]];
         }
-    }
-    if ([[identityRequestDict allKeys]containsObject:@"UserAliasUUID"]) {
-        identityRequest.onUserAlias = ^(MParticleUser * _Nonnull previousUser, MParticleUser * _Nonnull newUser) {
-            NSDictionary<NSString *, NSString *> *aliasDictionary = @{@"CallbackUuid": identityRequestDict[@"UserAliasUUID"],
-                                                                      @"PreviousMpid": [previousUser.userId stringValue],
-                                                                      @"NewMpid": [newUser.userId stringValue]};
-            UnitySendMessage("MParticle", "OnUserAlias", toChar(jsonWithDictionary(aliasDictionary)));
-        };
     }
     return identityRequest;
 }
