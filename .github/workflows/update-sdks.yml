@@ -18,18 +18,35 @@ jobs:
       - name: "Download Android Maven Metadata"
         run: curl https://repo1.maven.org/maven2/com/mparticle/android-core/maven-metadata.xml -o maven-metadata.xml
       - name: "Parse Latest Version"
-        id: latest-version
+        id: latest-version-parser
         uses: QwerMike/xpath-action@v1
         with:
           filename: 'maven-metadata.xml'
           expression: '//versioning/latest/text()'
+      - name: "Set Latest Version"
+        id: latest-version
+        run: echo "::set-output name=result::5.36.2"
+          # echo "::set-output name=result::${{steps.latest-version-parser.outputs.result}}"
+
+      - name: "Compare To Current Version"
+        id: version-delta
+        run: |
+          if [ `cat android.version` = ${{steps.latest-version.outputs.result}} ]; 
+          then   
+              OUTPUT=false;
+            else 
+              OUTPUT=true;
+          fi;
+          echo "::set-output name=hasChanged::$OUTPUT"
+          echo "has changes: $OUTPUT" 
       - name: "Checkout"
+        if: ${{steps.version-delta.outputs.hasChanged == 'true'}}
         uses: actions/checkout@v2
         with:
-          ref: main
           fetch-depth: 0
           lfs: true
       - name: "Import GPG Key"
+        if: ${{steps.version-delta.outputs.hasChanged == 'true'}}
         uses: crazy-max/ghaction-import-gpg@v4
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -37,6 +54,7 @@ jobs:
           git_user_signingkey: true
           git_commit_gpgsign: true
       - name: "Download Maven Artifact"
+        if: ${{steps.version-delta.outputs.hasChanged == 'true'}}
         id: download-maven-artifact
         uses: clausnz/github-action-download-maven-artifact@master
         with:
@@ -44,18 +62,21 @@ jobs:
           repository: 'maven2'
           groupId: 'com.mparticle'
           artifactId: 'android-core'
-          version: '5.36.2' #${{steps.latest-version.outputs.result}}
+          version: ${{steps.latest-version.outputs.result}}
           extension: 'aar'
       - name: "Output file path in container"
+        if: ${{steps.version-delta.outputs.hasChanged == 'true'}}
         run: |
+          echo ${{steps.latest-version.outputs.result}} > Assets/Plugins/android.version
           jar xf ${{steps.download-maven-artifact.outputs.file}} classes.jar
           mv -f classes.jar Assets/Plugins/Android/mparticle-core.jar
       - name: "Commit Changes"
         run: |
           git add Assets/Plugins/Android
-          git diff-index --quiet HEAD || git commit -m "update: mParticle Android SDK to version 5.36.2"; 
+          git add Assets/Plugins/android.version
+          git diff-index --quiet HEAD || git commit -m "update: mParticle Android SDK to version ${{steps.latest-version.outputs.result}}"; 
           git push -f origin HEAD:chore/update-sdks
-  update-apple-sdk:
+  update-ios-sdk:
     name: "Update iOS SDK"
     needs: update-android-sdk
     runs-on: macos-latest
@@ -83,17 +104,35 @@ jobs:
         run: echo "github \"mparticle/mparticle-apple-sdk\"" > Cartfile
       - name: "Carthage Install"
         run: carthage update
-      - name: "Move mParticle-apple-sdk.framework"
+      - name: "Parse Latest Version"
+        id: latest-version
+        run: echo "::set-output name=result::$(cut -d'"' -f2 <<< `carthage checkout`)"
+      - name: "Compare To Current Version"
+        id: version-delta
         run: |
+          if [ `cat Assets/Plugins/ios.version` = ${{steps.latest-version.outputs.result}} ]; 
+          then   
+              OUTPUT=false;
+            else 
+              OUTPUT=true;
+          fi;
+          echo "::set-output name=hasChanged::$OUTPUT"
+          echo "has changes: $OUTPUT" 
+      - name: "Move mParticle-apple-sdk.framework"
+        if: ${{steps.version-delta.outputs.hasChanged}}
+        run: |
+          echo ${{steps.latest-version.outputs.result}} > Assets/Plugins/ios.version
           rm -rf Assets/Plugins/iOS/mParticle_Apple_SDK.framework; 
           mv -f carthage/Build/iOS/mParticle_Apple_SDK.framework Assets/Plugins/iOS/
       - name: "Commit Changes"
+        if: ${{steps.version-delta.outputs.hasChanged}}
         run: |
           git add Assets/Plugins/iOS
-          git diff-index --quiet HEAD || git commit -m "update: mParticle Apple SDK to version $(cut -d'"' -f2 <<< `carthage checkout`)"; git push origin HEAD:chore/update-sdks
+          git add Assets/Plugins/ios.version
+          git diff-index --quiet HEAD || git commit -m "update: mParticle Apple SDK to version ${{steps.latest-version.outputs.result}}"; git push origin HEAD:chore/update-sdks
   open-pr:
     name: "Open Update SDKs PR"
-    needs: update-apple-sdk
+    needs: update-ios-sdk
     runs-on: ubuntu-latest
     env:
       GIT_AUTHOR_NAME: mparticle-bot
