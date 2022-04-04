@@ -26,8 +26,16 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v2
         with:
+          ref: main
           fetch-depth: 0
           lfs: true
+      - name: "Import GPG Key"
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: "Download Maven Artifact"
         id: download-maven-artifact
         uses: clausnz/github-action-download-maven-artifact@master
@@ -36,7 +44,7 @@ jobs:
           repository: 'maven2'
           groupId: 'com.mparticle'
           artifactId: 'android-core'
-          version: ${{steps.latest-version.outputs.result}}
+          version: '5.36.2' #${{steps.latest-version.outputs.result}}
           extension: 'aar'
       - name: "Output file path in container"
         run: |
@@ -45,10 +53,11 @@ jobs:
       - name: "Commit Changes"
         run: |
           git add Assets/Plugins/Android
-          git diff-index --quiet HEAD || git commit -m "update: mParticle Android SDK to version ${{steps.latest-version.outputs.result}}"; git push -f origin HEAD:update-sdks
+          git diff-index --quiet HEAD || git commit -m "update: mParticle Android SDK to version 5.36.2"; 
+          git push -f origin HEAD:chore/update-sdks
   update-apple-sdk:
-    needs: update-android-sdk
     name: "Update iOS SDK"
+    needs: update-android-sdk
     runs-on: macos-latest
     env:
       GIT_AUTHOR_NAME: mparticle-bot
@@ -60,9 +69,16 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v2
         with:
-          ref: update-sdks
+          ref: chore/update-sdks
           fetch-depth: 0
           lfs: true
+      - name: "Import GPG Key"
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: "Create Cartfile"
         run: echo "github \"mparticle/mparticle-apple-sdk\"" > Cartfile
       - name: "Carthage Install"
@@ -74,4 +90,44 @@ jobs:
       - name: "Commit Changes"
         run: |
           git add Assets/Plugins/iOS
-          git diff-index --quiet HEAD || git commit -m "update: mParticle Apple SDK to version $(cut -d'"' -f2 <<< `carthage checkout`)"; git push origin HEAD:update-sdks
+          git diff-index --quiet HEAD || git commit -m "update: mParticle Apple SDK to version $(cut -d'"' -f2 <<< `carthage checkout`)"; git push origin HEAD:chore/update-sdks
+  open-pr:
+    name: "Open Update SDKs PR"
+    needs: update-apple-sdk
+    runs-on: ubuntu-latest
+    env:
+      GIT_AUTHOR_NAME: mparticle-bot
+      GIT_AUTHOR_EMAIL: developers@mparticle.com
+      GIT_COMMITTER_NAME: mparticle-bot
+      GIT_COMMITTER_EMAIL: developers@mparticle.com
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          ref: chore/update-sdks
+          fetch-depth: 0
+          lfs: true
+      - name: "Check For Changes"
+        id: check-changes
+        run: |
+          if [ `git rev-parse HEAD` = `git rev-parse origin/main` ]; 
+          then   
+              OUTPUT=false;
+            else 
+              OUTPUT=true;
+          fi;
+          echo "::set-output name=hasChanges::$OUTPUT"
+          echo "has changes: $OUTPUT"
+      - name: "Open PR"
+        if: ${{steps.check-changes.outputs.hasChanges == 'true'}}
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.pulls.create({
+                title: 'chore: update sdk artifacts',
+                owner: context.repo.owner,
+                repo: context.payload.repository.name,
+                head: 'chore/update-sdks',
+                base: 'main'
+            }); 
