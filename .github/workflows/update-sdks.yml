@@ -44,7 +44,7 @@ jobs:
           repository: 'maven2'
           groupId: 'com.mparticle'
           artifactId: 'android-core'
-          version: ${{steps.latest-version.outputs.result}}
+          version: '5.36.2' #${{steps.latest-version.outputs.result}}
           extension: 'aar'
       - name: "Output file path in container"
         run: |
@@ -53,7 +53,7 @@ jobs:
       - name: "Commit Changes"
         run: |
           git add Assets/Plugins/Android
-          git diff-index --quiet HEAD || git commit -m "update: mParticle Android SDK to version ${{steps.latest-version.outputs.result}}"; 
+          git diff-index --quiet HEAD || git commit -m "update: mParticle Android SDK to version 5.36.2"; 
           git push -f origin HEAD:chore/update-sdks
   update-apple-sdk:
     name: "Update iOS SDK"
