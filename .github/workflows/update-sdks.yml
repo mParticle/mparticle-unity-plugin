@@ -38,7 +38,7 @@ jobs:
         if: ${{steps.version-delta.outputs.hasChanged == 'true'}}
         uses: actions/checkout@v2
         with:
-          ref: main
+          ref: old_main
           fetch-depth: 0
           lfs: true
       - name: "Import GPG Key"
@@ -164,5 +164,5 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.payload.repository.name,
                 head: 'chore/update-sdks',
-                base: 'main'
+                base: 'old_main'
             }); 
