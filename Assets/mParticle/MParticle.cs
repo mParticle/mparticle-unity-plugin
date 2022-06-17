@@ -5,8 +5,7 @@ using System.Linq;
 
 #if UNITY_ANDROID
 using mParticleAndroid;
-#endif
-#if UNITY_IOS
+#elif UNITY_IOS
 using mParticleiOs;
 #endif
 

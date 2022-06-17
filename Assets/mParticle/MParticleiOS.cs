@@ -9,6 +9,7 @@ using System.Linq;
 
 namespace mParticleiOs
 {
+	#if UNITY_IOS
 	public class MParticleiOS : IMParticleSDK
 	{
 		/*
@@ -639,4 +640,5 @@ namespace mParticleiOs
 		}
 
 	}
+	#endif
 }

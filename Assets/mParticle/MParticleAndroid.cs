@@ -8,6 +8,7 @@ using mParticle;
 
 namespace mParticleAndroid
 {
+	#if UNITY_ANDROID
 	public sealed class MParticleAndroid : IMParticleSDK
 	{
 		private AndroidJavaObject mp;
@@ -454,4 +455,5 @@ namespace mParticleAndroid
 		}
 
 	}
+	#endif
 }
