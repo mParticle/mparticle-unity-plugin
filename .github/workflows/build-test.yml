@@ -43,7 +43,53 @@ jobs:
             UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-      # - uses: actions/upload-artifact@v2
-      #   with:
-      #     name: Build-${{ matrix.targetPlatform }}
-      #     path: build/${{ matrix.targetPlatform }}
+  buildAndroidSampleApp:
+    name: Build Android Sample app
+    needs: [pr-branch-check-name, pr-title-check, pr-branch-target-gitflow]
+    if: always() && !failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup Unity
+        uses: kuler90/setup-unity@v1
+        with:
+          unity-version: 2020.3.32f1
+          unity-modules: android
+      - name: Activate Unity
+        uses: kuler90/activate-unity@v1
+        with:
+          unity-username: ${{ secrets.UNITY_EMAIL }}
+          unity-password: ${{ secrets.UNITY_PASSWORD }}
+          unity-serial: ${{ secrets.UNITY_SERIAL }}
+      - name: "Build Android Sample app"
+        run: ./buildscript.sh; ./testAndroidBuild.sh
+  buildiOSSampleApp:
+    name: Build Android Sample app
+    needs: [pr-branch-check-name, pr-title-check, pr-branch-target-gitflow]
+    if: always() && !failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+      - name: Setup Unity
+        uses: kuler90/setup-unity@v1
+        with:
+          unity-version: 2020.3.32f1
+          unity-modules: android
+      - name: Activate Unity
+        uses: kuler90/activate-unity@v1
+        with:
+          unity-username: ${{ secrets.UNITY_EMAIL }}
+          unity-password: ${{ secrets.UNITY_PASSWORD }}
+          unity-serial: ${{ secrets.UNITY_SERIAL }}
+      - name: "Build iOS Sample app"
+        run: ./buildscript.sh; ./testIOSBuild.sh
+
+
