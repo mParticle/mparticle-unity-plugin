@@ -5,6 +5,7 @@ using mParticleAndroid;
 
 namespace mParticle.android
 {
+	#if UNITY_ANDROID || UNITY_EDITOR
 	public class AndroidOnSuccessListener : AndroidJavaProxy
 	{
 		OnSuccess listener;
@@ -30,6 +31,6 @@ namespace mParticle.android
 					});
 			}
 		}
-
 	}
+	#endif
 }

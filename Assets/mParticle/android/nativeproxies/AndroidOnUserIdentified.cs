@@ -5,6 +5,7 @@ using mParticleAndroid;
 
 namespace mParticle.android
 {
+	#if UNITY_ANDROID || UNITY_EDITOR
 	class AndroidOnUserIdentified : AndroidJavaProxy
 	{
 		OnUserIdentified onUserIdentifiedHandler;
@@ -20,4 +21,5 @@ namespace mParticle.android
 			onUserIdentifiedHandler.Invoke(new MParticleUserImpl(user));
 		}
 	}
+	#endif
 }

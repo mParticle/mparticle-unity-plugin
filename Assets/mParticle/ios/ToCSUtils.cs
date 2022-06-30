@@ -7,6 +7,7 @@ using System.Collections;
 
 namespace mParticle.ios
 {
+	#if UNITY_IOS || UNITY_EDITOR
 	public class ToCSUtils
 	{
 		public ToCSUtils()
@@ -172,6 +173,7 @@ namespace mParticle.ios
 			return new string[]{ valueRaw, "" };
 		}
 	}
+	#endif
 }
 
 //   Sample = "AssertAttribute1":"value101","AssertAttribute3":"value303","AssertAttribute2":"value202"
