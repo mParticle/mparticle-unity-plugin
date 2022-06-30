@@ -5,6 +5,7 @@ using System.Collections;
 
 namespace mParticle.ios
 {
+	#if UNITY_IOS || UNITY_EDITOR
 	internal class ToiOSUtils
 	{
 		public ToiOSUtils()
@@ -68,5 +69,6 @@ namespace mParticle.ios
 			}
 		}
 	}
+	#endif
 }
 

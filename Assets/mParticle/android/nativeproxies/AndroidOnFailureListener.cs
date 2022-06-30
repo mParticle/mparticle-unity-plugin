@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace mParticle.android
 {
+    #if UNITY_ANDROID || UNITY_EDITOR
     internal class AndroidOnFailureListener : AndroidJavaProxy
     {
         OnFailure listener;
@@ -45,4 +46,5 @@ namespace mParticle.android
         }
 
     }
+    #endif
 }

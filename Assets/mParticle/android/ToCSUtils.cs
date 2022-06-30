@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace mParticle.android
 {
+	#if UNITY_ANDROID || UNITY_EDITOR
 	internal class ToCSUtils
 	{
 		public ToCSUtils()
@@ -19,4 +20,5 @@ namespace mParticle.android
 			return (mParticle.Environment)Enum.Parse(typeof(Environment), value.Call<string>("name"));
 		}
 	}
+	#endif
 }

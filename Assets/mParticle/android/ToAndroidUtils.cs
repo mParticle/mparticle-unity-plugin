@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace mParticle.android
 {
+	#if UNITY_ANDROID || UNITY_EDITOR
 	internal class ToAndroidUtils
 	{
 		internal AndroidJavaClass identityTypeClass;
@@ -257,4 +258,5 @@ namespace mParticle.android
 			return nativeMpOptions.Call<AndroidJavaObject>("build");
 		}
 	}
+	#endif
 }
