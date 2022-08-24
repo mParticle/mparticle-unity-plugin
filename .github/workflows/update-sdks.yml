@@ -10,9 +10,9 @@ jobs:
     name: "Update Android SDK"
     runs-on: ubuntu-latest
     env:
-      GIT_AUTHOR_NAME: mparticle-bot
+      GIT_AUTHOR_NAME: mparticle-automation
       GIT_AUTHOR_EMAIL: developers@mparticle.com
-      GIT_COMMITTER_NAME: mparticle-bot
+      GIT_COMMITTER_NAME: mparticle-automation
       GIT_COMMITTER_EMAIL: developers@mparticle.com
     steps:
       - name: "Download Android Maven Metadata"
@@ -60,9 +60,9 @@ jobs:
     needs: update-android-sdk
     runs-on: macos-latest
     env:
-      GIT_AUTHOR_NAME: mparticle-bot
+      GIT_AUTHOR_NAME: mparticle-automation
       GIT_AUTHOR_EMAIL: developers@mparticle.com
-      GIT_COMMITTER_NAME: mparticle-bot
+      GIT_COMMITTER_NAME: mparticle-automation
       GIT_COMMITTER_EMAIL: developers@mparticle.com
       GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -96,9 +96,9 @@ jobs:
     needs: update-apple-sdk
     runs-on: ubuntu-latest
     env:
-      GIT_AUTHOR_NAME: mparticle-bot
+      GIT_AUTHOR_NAME: mparticle-automation
       GIT_AUTHOR_EMAIL: developers@mparticle.com
-      GIT_COMMITTER_NAME: mparticle-bot
+      GIT_COMMITTER_NAME: mparticle-automation
       GIT_COMMITTER_EMAIL: developers@mparticle.com
     steps:
       - name: "Checkout"
@@ -127,7 +127,7 @@ jobs:
             github.pulls.create({
                 title: 'chore: update sdk artifacts',
                 owner: context.repo.owner,
-                repo: context.payload.repository.name,
+                repo: context.repo.repo,
                 head: 'chore/update-sdks',
                 base: 'main'
             }); 
