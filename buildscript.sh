@@ -4,7 +4,8 @@
 
 project_dir=${PWD}
 
-/Applications/Unity/Hub/Editor/2020.3.0f1/Unity.app/Contents/MacOS/Unity \
+# /Applications/Unity/Hub/Editor/2020.3.32f1/Unity.app/Contents/MacOS/Unity \
+/home/runner/Unity/Hub/Editor/2020.3.32f1/Editor/Unity \
     -projectPath "${PWD}" \
     -logFile \
     -exportPackage Assets/mParticle/MParticle.cs \
@@ -33,3 +34,5 @@ project_dir=${PWD}
                    Assets/Plugins/iOS/mParticle_Apple_SDK.framework \
                    Assets/Editor/MParticleBuildPostprocessor.cs \
     mParticle.unitypackage -nographics -batchmode -quit;
+
+
