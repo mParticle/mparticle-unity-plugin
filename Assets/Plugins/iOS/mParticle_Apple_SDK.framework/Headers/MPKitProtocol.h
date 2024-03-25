@@ -7,14 +7,15 @@
 #import <UIKit/UIKit.h>
 
 #if TARGET_OS_IOS == 1
+#ifndef MPARTICLE_LOCATION_DISABLE
     #import <CoreLocation/CoreLocation.h>
+#endif
 #endif
 
 @class MPCommerceEvent;
 @class MPBaseEvent;
 @class MPEvent;
 @class MPKitExecStatus;
-@class MPUserSegments;
 @class MPKitAPI;
 @class MPConsentState;
 @class FilteredMParticleUser;
@@ -29,10 +30,11 @@
 
 @protocol MPKitProtocol <NSObject>
 #pragma mark - Required methods
-@property (nonatomic, unsafe_unretained, readonly) BOOL started;
+@property (nonatomic, readonly) BOOL started;
 
 - (nonnull MPKitExecStatus *)didFinishLaunchingWithConfiguration:(nonnull NSDictionary *)configuration;
 
+// Value ignored for sideloaded kits, so a value like -1 is recommended, sideloadedKitCode is used instead which is set by the SDK
 + (nonnull NSNumber *)kitCode;
 
 #pragma mark - Optional methods
@@ -43,9 +45,12 @@
 @property (nonatomic, strong, nullable, readonly) id providerKitInstance;
 @property (nonatomic, strong, nullable) MPKitAPI *kitApi;
 
+// Only used for sideloaded kits
+@property (nonatomic, strong, nonnull) NSNumber *sideloadedKitCode;
+
 #pragma mark Kit lifecycle
 - (void)start;
-- (void)deinit;
+- (void)stop;
 
 #pragma mark Application
 - (nonnull MPKitExecStatus *)continueUserActivity:(nonnull NSUserActivity *)userActivity restorationHandler:(void(^ _Nonnull)(NSArray * _Nullable restorableObjects))restorationHandler;
@@ -67,9 +72,11 @@
 
 #pragma mark Location tracking
 #if TARGET_OS_IOS == 1
+#ifndef MPARTICLE_LOCATION_DISABLE
 - (nonnull MPKitExecStatus *)beginLocationTracking:(CLLocationAccuracy)accuracy minDistance:(CLLocationDistance)distanceFilter;
 - (nonnull MPKitExecStatus *)endLocationTracking;
 - (nonnull MPKitExecStatus *)setLocation:(nonnull CLLocation *)location;
+#endif
 #endif
 
 #pragma mark Session management
