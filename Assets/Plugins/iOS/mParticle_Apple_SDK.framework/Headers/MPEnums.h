@@ -375,6 +375,33 @@ typedef NS_ENUM(NSUInteger, MPMessageType) {
     MPMessageTypeMedia = 20
 };
 
+#define NSStringFromMessageType( value ) \
+( \
+@{ \
+@( MPMessageTypeUnknown )          : kMPMessageTypeStringUnknown, \
+@( MPMessageTypeSessionStart )            : kMPMessageTypeStringSessionStart, \
+@( MPMessageTypeSessionEnd )              : kMPMessageTypeStringSessionEnd, \
+@( MPMessageTypeScreenView )         : kMPMessageTypeStringScreenView, \
+@( MPMessageTypeEvent )         : kMPMessageTypeStringEvent, \
+@( MPMessageTypeCrashReport )      : kMPMessageTypeStringCrashReport, \
+@( MPMessageTypeOptOut )              : kMPMessageTypeStringOptOut, \
+@( MPMessageTypeFirstRun )               : kMPMessageTypeStringFirstRun, \
+@( MPMessageTypePreAttribution )           : kMPMessageTypeStringPreAttribution, \
+@( MPMessageTypePushRegistration )      : kMPMessageTypeStringPushRegistration, \
+@( MPMessageTypeAppStateTransition )            : kMPMessageTypeStringAppStateTransition, \
+@( MPMessageTypePushNotification )      : kMPMessageTypeStringPushNotification, \
+@( MPMessageTypeNetworkPerformance )               : kMPMessageTypeStringNetworkPerformance, \
+@( MPMessageTypeBreadcrumb )          : kMPMessageTypeStringBreadcrumb, \
+@( MPMessageTypeProfile )            : kMPMessageTypeStringProfile, \
+@( MPMessageTypePushNotificationInteraction )              : kMPMessageTypeStringPushNotificationInteraction, \
+@( MPMessageTypeCommerceEvent )       : kMPMessageTypeStringCommerceEvent, \
+@( MPMessageTypeUserAttributeChange )      : kMPMessageTypeStringUserAttributeChange, \
+@( MPMessageTypeUserIdentityChange )       : kMPMessageTypeStringUserIdentityChange, \
+@( MPMessageTypeMedia )  : kMPMessageTypeStringMedia, \
+} \
+[ @( value ) ] \
+)
+
 /// Upload Types
 typedef NS_ENUM(NSUInteger, MPUploadType) {
     /** Upload type for messages */
@@ -407,10 +434,23 @@ typedef NS_ENUM(NSUInteger, MPIdentityErrorResponseCode) {
     MPIdentityErrorResponseCodeOptOut = 5,
     /** HTTP Error 401: Unauthorized. Ensure that you've initialized the mParticle SDK with a valid workspace key and secret. */
     MPIdentityErrorResponseCodeUnauthorized = 401,
+    /** HTTP Error 429: Identity request should be retried */
+    MPIdentityErrorResponseCodeRetry = 429,
+    /** HTTP Error 500: Identity request should be retried */
+    MPIdentityErrorResponseCodeInternalServerError = 500,
+    /** HTTP Error 502: Identity request should be retried */
+    MPIdentityErrorResponseCodeBadGateway = 502,
     /** HTTP Error 504: Identity request should be retried */
     MPIdentityErrorResponseCodeTimeout = 504,
-    /** HTTP Error 429: Identity request should be retried */
-    MPIdentityErrorResponseCodeRetry = 429
+};
+
+typedef NS_ENUM(NSUInteger, MPWrapperSdk) {
+    MPWrapperSdkNone = 0,
+    MPWrapperSdkUnity = 1,
+    MPWrapperSdkReactNative = 2,
+    MPWrapperSdkCordova = 3,
+    MPWrapperSdkXamarin = 4,
+    MPWrapperSdkFlutter = 5
 };
 
 /**
@@ -548,6 +588,8 @@ extern NSString * _Nonnull const MPKitAPIErrorKey;
 @interface MPEnum : NSObject
 
 + (BOOL)isUserIdentity:(MPIdentity)identity;
++ (MPMessageType)messageTypeFromNSString:(NSString * _Nullable)messageTypeString;
++ (NSUInteger)messageTypeSize;
 
 @end
 
